@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IELTS Mate · 雅思听说读训练营</title>
+<style>
+  :root{
+    --bg:#f5f7f8; --card:#ffffff; --ink:#1c2b2a; --muted:#6b7a78;
+    --teal:#0f766e; --teal-light:#e0f2ef; --teal-border:#b8ddd7;
+    --blue:#1d4ed8; --blue-light:#e8eefc;
+    --amber:#b45309; --amber-light:#fdf1dc;
+    --danger:#b91c1c; --danger-light:#fdeaea;
+    --ok:#15803d; --ok-light:#e5f5ea;
+    --radius:12px; --shadow:0 1px 3px rgba(20,40,40,.08);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+
+  /* ===== 导航 ===== */
+  header{background:var(--card);border-bottom:1px solid var(--teal-border);position:sticky;top:0;z-index:50}
+  .nav{display:flex;align-items:center;gap:8px;height:60px}
+  .logo{font-weight:700;font-size:18px;color:var(--teal);margin-right:16px;display:flex;align-items:center;gap:8px}
+  .logo .dot{width:10px;height:10px;border-radius:50%;background:var(--teal);display:inline-block}
+  .tab-btn{border:none;background:none;padding:8px 16px;border-radius:8px;font-size:15px;color:var(--muted);cursor:pointer;font-weight:500}
+  .tab-btn:hover{background:var(--teal-light);color:var(--teal)}
+  .tab-btn.active{background:var(--teal);color:#fff}
+  .nav .score-pill{margin-left:auto;font-size:13px;color:var(--muted);background:var(--teal-light);padding:4px 12px;border-radius:999px}
+
+  main{padding:28px 0 60px}
+  .page{display:none}
+  .page.active{display:block}
+
+  h1{font-size:26px;margin-bottom:6px}
+  h2{font-size:19px;margin-bottom:10px}
+  .sub{color:var(--muted);font-size:14px;margin-bottom:24px}
+
+  /* ===== 卡片 ===== */
+  .card{background:var(--card);border:1px solid var(--teal-border);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px 22px;margin-bottom:16px}
+  .grid{display:grid;gap:16px}
+  .grid-3{grid-template-columns:repeat(3,1fr)}
+  .grid-2{grid-template-columns:repeat(2,1fr)}
+  @media(max-width:860px){.grid-3,.grid-2{grid-template-columns:1fr}}
+
+  .stat-card{background:var(--card);border:1px solid var(--teal-border);border-radius:var(--radius);padding:18px 20px}
+  .stat-card .label{font-size:13px;color:var(--muted)}
+  .stat-card .num{font-size:26px;font-weight:700;color:var(--teal);margin-top:2px}
+
+  .btn{display:inline-block;border:1px solid var(--teal-border);background:var(--card);color:var(--teal);
+    padding:9px 18px;border-radius:9px;font-size:14px;cursor:pointer;font-weight:500;transition:all .15s}
+  .btn:hover{background:var(--teal-light)}
+  .btn.primary{background:var(--teal);color:#fff;border-color:var(--teal)}
+  .btn.primary:hover{background:#0c5f58}
+  .btn.big{font-size:16px;padding:12px 30px}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btn.ghost{border-color:transparent;background:transparent;color:var(--muted)}
+  .btn.ghost:hover{background:var(--teal-light);color:var(--teal)}
+
+  .badge{display:inline-block;font-size:12px;padding:2px 10px;border-radius:999px;background:var(--teal-light);color:var(--teal);margin-right:6px}
+  .badge.blue{background:var(--blue-light);color:var(--blue)}
+  .badge.amber{background:var(--amber-light);color:var(--amber)}
+  .badge.gray{background:#eef1f1;color:var(--muted)}
+
+  .list-item{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:16px 0;border-bottom:1px dashed var(--teal-border)}
+  .list-item:last-child{border-bottom:none}
+  .list-item .info h3{font-size:16px;margin-bottom:2px}
+  .list-item .meta{font-size:13px;color:var(--muted);margin-top:4px}
+
+  /* ===== 听力播放器 ===== */
+  .player-box{background:#0e2a28;color:#d9efec;border-radius:var(--radius);padding:22px;margin-bottom:16px}
+  .player-box .now-title{font-size:17px;font-weight:600;color:#fff}
+  .ctrl-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:16px}
+  .ctrl-btn{background:#1c4a46;border:none;color:#d9efec;width:42px;height:42px;border-radius:50%;font-size:16px;cursor:pointer}
+  .ctrl-btn:hover{background:#2a5f5a}
+  .ctrl-btn.main{width:54px;height:54px;font-size:20px;background:var(--teal)}
+  .ctrl-btn:disabled{opacity:.4;cursor:not-allowed}
+  .speed-group{display:flex;gap:6px;margin-left:8px}
+  .speed-btn{background:#1c4a46;border:none;color:#d9efec;padding:6px 12px;border-radius:8px;font-size:13px;cursor:pointer}
+  .speed-btn.on{background:#3ba08f;color:#fff;font-weight:600}
+  .progress-line{height:5px;background:#1c4a46;border-radius:99px;margin-top:18px;overflow:hidden}
+  .progress-line .fill{height:100%;background:#3ba08f;width:0%;transition:width .3s}
+  .player-tip{font-size:12px;color:#7fb0aa;margin-top:12px}
+
+  .transcript{margin-top:16px;background:#123835;border-radius:10px;padding:16px;max-height:340px;overflow-y:auto}
+  .t-line{padding:7px 10px;border-radius:8px;margin-bottom:4px;font-size:15px;transition:background .2s}
+  .t-line b{color:#7fd6c5;font-weight:600;margin-right:8px}
+  .t-line.now{background:#1d514b;color:#fff}
+  .t-line.hidden-mode .txt{filter:blur(6px);user-select:none}
+
+  /* ===== 题目 ===== */
+  .q-item{margin-bottom:22px}
+  .q-item p.q{font-weight:500;margin-bottom:8px}
+  .opt{display:flex;gap:10px;align-items:flex-start;padding:10px 14px;border:1px solid var(--teal-border);border-radius:9px;margin-bottom:8px;cursor:pointer;font-size:14px;transition:all .12s}
+  .opt:hover{background:var(--teal-light)}
+  .opt.sel{border-color:var(--teal);background:var(--teal-light)}
+  .opt.right{border-color:var(--ok);background:var(--ok-light)}
+  .opt.wrong{border-color:var(--danger);background:var(--danger-light)}
+  .opt .letter{font-weight:700;color:var(--teal)}
+  .explain{font-size:13px;background:var(--amber-light);border-radius:8px;padding:10px 14px;margin-top:6px;color:var(--amber);display:none}
+  .result-banner{border-radius:var(--radius);padding:16px 22px;margin-bottom:16px;font-weight:600;display:none}
+  .result-banner.good{background:var(--ok-light);color:var(--ok);display:block}
+  .result-banner.mid{background:var(--amber-light);color:var(--amber);display:block}
+  .result-banner.bad{background:var(--danger-light);color:var(--danger);display:block}
+
+  /* ===== 口语 ===== */
+  .part-tabs{display:flex;gap:8px;margin-bottom:18px}
+  .part-tab{border:1px solid var(--teal-border);background:var(--card);padding:8px 20px;border-radius:999px;cursor:pointer;font-size:14px;color:var(--muted)}
+  .part-tab.on{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:600}
+  .topic-chip{display:inline-block;border:1px solid var(--teal-border);background:var(--card);padding:8px 16px;border-radius:999px;margin:0 8px 10px 0;cursor:pointer;font-size:14px;transition:all .12s}
+  .topic-chip:hover{border-color:var(--teal);background:var(--teal-light)}
+  .cue-card{background:linear-gradient(#fff,#fff);border:2px solid var(--teal);border-radius:var(--radius);padding:24px;position:relative}
+  .cue-card::before{content:"PART 2 · CUE CARD";position:absolute;top:-11px;left:20px;background:var(--teal);color:#fff;font-size:11px;padding:2px 12px;border-radius:99px;letter-spacing:.5px}
+  .cue-card ul{margin:10px 0 0 20px;font-size:15px}
+  .vocab-line{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  .vocab-item{background:var(--blue-light);color:var(--blue);font-size:13px;padding:5px 12px;border-radius:8px}
+  .vocab-item i{font-style:normal;color:var(--muted);margin-left:6px;font-size:12px}
+  .expr-li{padding:9px 0 9px 14px;border-left:3px solid var(--teal-border);margin-bottom:6px;font-size:14px;cursor:pointer;transition:all .12s}
+  .expr-li:hover{border-left-color:var(--teal);background:var(--teal-light)}
+  .expr-li small{display:block;color:var(--muted);font-size:12px;margin-top:1px}
+
+  .chat-box{height:360px;overflow-y:auto;background:#fafcfc;border:1px solid var(--teal-border);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:10px}
+  .msg{max-width:82%;padding:10px 14px;border-radius:14px;font-size:14px}
+  .msg.ai{background:var(--teal-light);border-bottom-left-radius:4px;align-self:flex-start}
+  .msg.me{background:var(--blue);color:#fff;border-bottom-right-radius:4px;align-self:flex-end}
+  .msg .who{font-size:11px;color:var(--muted);margin-bottom:2px}
+  .chat-input-row{display:flex;gap:8px;margin-top:12px}
+  .chat-input-row input{flex:1;border:1px solid var(--teal-border);border-radius:9px;padding:10px 14px;font-size:14px;outline:none}
+  .chat-input-row input:focus{border-color:var(--teal)}
+  .mic-btn{width:46px;border:1px solid var(--teal-border);background:var(--card);border-radius:9px;cursor:pointer;font-size:17px}
+  .mic-btn.rec{background:var(--danger-light);border-color:var(--danger);animation:pulse 1s infinite}
+  @keyframes pulse{50%{opacity:.6}}
+
+  /* ===== 阅读 ===== */
+  .reading-layout{display:grid;grid-template-columns:1.25fr 1fr;gap:18px;align-items:start}
+  @media(max-width:900px){.reading-layout{grid-template-columns:1fr}}
+  .passage-panel{background:var(--card);border:1px solid var(--teal-border);border-radius:var(--radius);padding:22px;max-height:640px;overflow-y:auto}
+  .passage-panel h3{font-size:17px;margin-bottom:12px;color:var(--teal)}
+  .passage-panel p{font-size:14.5px;margin-bottom:12px;text-align:justify}
+  .para-label{font-size:12px;font-weight:700;color:var(--teal);margin-right:6px}
+  .q-panel{background:var(--card);border:1px solid var(--teal-border);border-radius:var(--radius);padding:22px}
+  .timer-pill{display:inline-flex;align-items:center;gap:6px;background:var(--amber-light);color:var(--amber);font-weight:700;padding:5px 14px;border-radius:999px;font-size:14px}
+  .timer-pill.warn{background:var(--danger-light);color:var(--danger)}
+  .tf-row{display:flex;gap:8px;margin-bottom:8px}
+  .tf-row .opt{flex:1;justify-content:center;margin-bottom:0}
+
+  footer{border-top:1px solid var(--teal-border);background:var(--card);padding:20px 0;text-align:center;font-size:13px;color:var(--muted)}
+
+  /* ===== Part 2 全真模拟 v1.1 ===== */
+  .sim-timer{font-size:36px;font-weight:700;color:var(--teal);text-align:center;font-variant-numeric:tabular-nums;margin:6px 0}
+  .sim-timer.warn{color:var(--danger)}
+  .sim-stage{font-size:13px;color:var(--muted);text-align:center}
+  #simNotes{width:100%;min-height:84px;border:1px solid var(--teal-border);border-radius:9px;padding:10px 12px;font-size:14px;margin:10px 0;font-family:inherit;outline:none;resize:vertical}
+  #simNotes:focus{border-color:var(--teal)}
+  .rec-dot{display:inline-flex;align-items:center;gap:7px;color:var(--danger);font-weight:600;font-size:14px;justify-content:center;width:100%}
+  .rec-dot::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--danger);animation:pulse 1s infinite}
+  .slider-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .slider-row label{width:170px;font-size:13px;color:var(--muted);flex-shrink:0}
+  .slider-row input[type=range]{flex:1;accent-color:var(--teal)}
+  .slider-row .val{width:36px;font-weight:700;color:var(--teal);text-align:right}
+  .flu-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0}
+  @media(max-width:700px){.flu-grid{grid-template-columns:repeat(2,1fr)}}
+  .flu-grid .f{background:var(--bg);border-radius:9px;padding:10px 6px;text-align:center}
+  .flu-grid .f .n{font-size:20px;font-weight:700;color:var(--teal)}
+  .flu-grid .f .l{font-size:12px;color:var(--muted)}
+  .hist-item{font-size:13px;padding:9px 0;border-bottom:1px dashed var(--teal-border);display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+  .hist-item:last-child{border-bottom:none}
+  .hist-item .sc{color:var(--teal);font-weight:600}
+
+  .hidden{display:none!important}
+  .mt8{margin-top:8px}.mt16{margin-top:16px}.mb16{margin-bottom:16px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <div class="logo"><span class="dot"></span>IELTS Mate</div>
+    <button class="tab-btn active" data-page="home">首页</button>
+    <button class="tab-btn" data-page="listening">🎧 听力</button>
+    <button class="tab-btn" data-page="speaking">🎤 口语</button>
+    <button class="tab-btn" data-page="reading">📖 阅读</button>
+    <span class="score-pill" id="globalScore">累计练习：0 次</span>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ================= 首页 ================= -->
+  <section class="page active" id="page-home">
+    <h1>你的雅思听说读训练营</h1>
+    <p class="sub">听力磨耳朵 · 口语陪练 · 阅读真题实战 —— 三个板块一套体验，进度自动保存</p>
+
+    <div class="grid grid-3 mb16">
+      <div class="stat-card"><div class="label">听力材料</div><div class="num" id="statListen">0 篇</div></div>
+      <div class="stat-card"><div class="label">口语话题</div><div class="num" id="statSpeak">0 个</div></div>
+      <div class="stat-card"><div class="label">阅读真题</div><div class="num" id="statRead">0 篇</div></div>
+    </div>
+
+    <div class="grid grid-3">
+      <div class="card">
+        <h2>🎧 听力</h2>
+        <p style="font-size:14px;color:var(--muted)">真实场景对话 + 学术独白，AI 朗读引擎逐句播放，可调 0.5~1.5 倍速，字幕一键隐匿做精听。</p>
+        <button class="btn primary mt16" data-goto="listening">开始练习</button>
+      </div>
+      <div class="card">
+        <h2>🎤 口语</h2>
+        <p style="font-size:14px;color:var(--muted)">随机抽取雅思口语话题，AI 对话搭子陪你模拟 Part 1 / Part 2 问答，附核心词汇与高分表达。</p>
+        <button class="btn primary mt16" data-goto="speaking">开始练习</button>
+      </div>
+      <div class="card">
+        <h2>📖 阅读</h2>
+        <p style="font-size:14px;color:var(--muted)">雅思风格学术文章 + 判断/选择/段落匹配题型，内置 20 分钟计时器，交卷即出分并附逐题解析。</p>
+        <button class="btn primary mt16" data-goto="reading">开始练习</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 听力 ================= -->
+  <section class="page" id="page-listening">
+    <div id="listenList">
+      <h1>🎧 听力板块</h1>
+      <p class="sub">选一篇材料开始：播放由浏览器 AI 朗读引擎驱动（无需下载音频），建议先盲听一遍，再开字幕精听。</p>
+      <div class="card" id="listenItems"></div>
+    </div>
+
+    <div id="listenPlayer" class="hidden">
+      <button class="btn ghost" onclick="listenBack()">← 返回听力列表</button>
+      <div class="player-box mt8">
+        <div class="now-title" id="pTitle"></div>
+        <div style="font-size:13px;color:#7fb0aa" id="pMeta"></div>
+        <div class="ctrl-row">
+          <button class="ctrl-btn" id="btnPrev" title="上一句">⏮</button>
+          <button class="ctrl-btn main" id="btnPlay" title="播放/暂停">▶</button>
+          <button class="ctrl-btn" id="btnNext" title="下一句">⏭</button>
+          <button class="ctrl-btn" id="btnRepeat" title="重读本句">↻</button>
+          <div class="speed-group" id="speedGroup">
+            <button class="speed-btn" data-speed="0.5">0.5x</button>
+            <button class="speed-btn on" data-speed="0.85">0.85x</button>
+            <button class="speed-btn" data-speed="1">1.0x</button>
+            <button class="speed-btn" data-speed="1.25">1.25x</button>
+          </div>
+          <button class="speed-btn" id="btnTranscript" style="margin-left:auto">隐藏字幕</button>
+        </div>
+        <div class="progress-line"><div class="fill" id="pFill"></div></div>
+        <div class="player-tip" id="pTip">提示：使用浏览器语音引擎朗读对话。听不清时点 ↻ 重读本句，或降速练习。</div>
+        <div class="transcript" id="transcript"></div>
+      </div>
+
+      <div class="card">
+        <h2>听后理解练习</h2>
+        <p class="sub" style="margin-bottom:14px">先听后答，答完点击提交查看得分与解析。</p>
+        <div id="listenQuiz"></div>
+        <button class="btn primary" id="btnSubmitListen">提交答案</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 口语 ================= -->
+  <section class="page" id="page-speaking">
+    <div id="speakHome">
+      <h1>🎤 口语板块</h1>
+      <p class="sub">随机抽题 → 看题卡与词汇 → 与 AI 搭子开口模拟。支持语音输入（需 Chrome/Edge），也可打字作答。</p>
+
+      <div class="card" style="text-align:center;padding:34px">
+        <h2 style="margin-bottom:4px">今日话题抽签</h2>
+        <p style="font-size:14px;color:var(--muted);margin-bottom:16px">像考官翻题库一样随机抽一个话题，练到哪算哪</p>
+        <button class="btn primary big" id="btnDraw">🎲 随机抽取话题</button>
+        <div id="drawResult" class="mt16" style="display:none">
+          <span class="badge amber" id="drawPart"></span>
+          <strong id="drawTitle" style="font-size:17px"></strong>
+          <div class="mt16"><button class="btn primary" id="btnGoTopic">开始练习这个话题 →</button></div>
+        </div>
+      </div>
+
+      <div class="part-tabs">
+        <button class="part-tab on" data-part="p1">Part 1 · 日常问答</button>
+        <button class="part-tab" data-part="p2">Part 2 · 话题陈述</button>
+      </div>
+      <div class="card"><div id="topicChips"></div></div>
+    </div>
+
+    <div id="speakDetail" class="hidden">
+      <button class="btn ghost" onclick="speakBack()">← 返回话题库</button>
+      <div class="mt8" id="sdHead"></div>
+
+      <div class="grid grid-2 mt16">
+        <div>
+          <div class="cue-card" id="sdCue" style="margin-bottom:16px"></div>
+
+          <div class="card" id="simWrap" style="display:none">
+            <h2>Part 2 全真模拟 <span class="badge amber">v1.1</span></h2>
+            <p class="sub" style="margin-bottom:12px">60 秒准备（可记笔记）→ 2 分钟陈述（自动录音）→ 回放自听 + 流利度反馈 + 四维自评</p>
+
+            <div id="simStart">
+              <button class="btn primary big" id="btnSimStart">▶ 开始模拟</button>
+              <p class="sim-stage" style="margin-top:8px">请找一个安静环境，模拟全程建议只说英语。</p>
+            </div>
+
+            <div id="simPrep" class="hidden">
+              <div class="sim-stage">第一阶段 · 准备时间（可提前开始）</div>
+              <div class="sim-timer" id="prepTimer">01:00</div>
+              <textarea id="simNotes" placeholder="快速记关键词：who / where / when / what / why…不要写完整句子"></textarea>
+              <div style="text-align:center"><button class="btn primary" id="btnStartTalk">我准备好了，开始陈述 →</button></div>
+            </div>
+
+            <div id="simTalk" class="hidden">
+              <div class="sim-stage">第二阶段 · 陈述（讲满 2 分钟）</div>
+              <div class="sim-timer" id="talkTimer">02:00</div>
+              <div class="rec-dot" id="recDot">正在录音</div>
+              <p class="sim-stage" style="margin-top:8px" id="talkHint">开启麦克风并正常讲述。时间到自动结束。</p>
+              <div style="text-align:center;margin-top:8px"><button class="btn" id="btnStopTalk">提前结束</button></div>
+            </div>
+
+            <div id="simResult" class="hidden">
+              <h2 style="margin-top:14px">练习结果</h2>
+              <audio id="simAudio" controls style="width:100%;margin:8px 0"></audio>
+              <div class="flu-grid" id="fluGrid"></div>
+              <p style="font-size:13px;color:var(--muted)" id="fluTip"></p>
+              <h2 style="margin-top:14px">四维自评 <span class="badge gray">对照官方评分标准</span></h2>
+              <div class="slider-row"><label>FC 流利与连贯</label><input type="range" min="4" max="9" step="0.5" value="6" id="slFC"><span class="val" id="vFC">6</span></div>
+              <div class="slider-row"><label>LR 词汇资源</label><input type="range" min="4" max="9" step="0.5" value="6" id="slLR"><span class="val" id="vLR">6</span></div>
+              <div class="slider-row"><label>GRA 语法多样性</label><input type="range" min="4" max="9" step="0.5" value="6" id="slGRA"><span class="val" id="vGRA">6</span></div>
+              <div class="slider-row"><label>PR 发音</label><input type="range" min="4" max="9" step="0.5" value="6" id="slPR"><span class="val" id="vPR">6</span></div>
+              <div style="text-align:center;margin-top:6px">
+                <button class="btn primary" id="btnSaveAssess">保存本次练习</button>
+                <span style="font-size:13px;color:var(--ok);margin-left:10px" id="assessSaved"></span>
+              </div>
+              <h2 style="margin-top:14px">历史记录</h2>
+              <div id="assessHist"></div>
+            </div>
+          </div>
+          <div class="card">
+            <h2>核心词汇</h2>
+            <div class="vocab-line" id="sdVocab"></div>
+          </div>
+          <div class="card">
+            <h2>可参考表达 <span class="badge gray" style="margin-left:4px">点击朗读</span></h2>
+            <div id="sdExprs"></div>
+          </div>
+        </div>
+        <div>
+          <div class="card" style="display:flex;flex-direction:column">
+            <h2>AI 对话搭子 <span class="badge blue" id="sdPartnerName">Examiner Amy</span></h2>
+            <p class="sub" style="margin-bottom:10px">搭子会围绕话题逐步提问，像真实考场一样追问。</p>
+            <div class="chat-box" id="chatBox"></div>
+            <div class="chat-input-row">
+              <button class="mic-btn" id="btnMic" title="按住说话/点击开始">🎙</button>
+              <input id="chatInput" placeholder="说出或输入你的回答…（回车发送）">
+              <button class="btn primary" id="btnSend">发送</button>
+            </div>
+            <div style="font-size:12px;color:var(--muted);margin-top:8px" id="recHint">语音识别需在 Chrome / Edge 中使用并允许麦克风权限。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 阅读 ================= -->
+  <section class="page" id="page-reading">
+    <div id="readList">
+      <h1>📖 阅读板块</h1>
+      <p class="sub">雅思学术风格文章 + 配套题型，每篇限时 20 分钟，交卷自动判分并给出逐题解析。</p>
+      <div class="card" id="readItems"></div>
+    </div>
+
+    <div id="readDo" class="hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+        <button class="btn ghost" onclick="readBack()">← 返回阅读列表</button>
+        <div><span class="timer-pill" id="readTimer">⏱ 20:00</span>
+        <button class="btn primary" id="btnSubmitRead">交卷</button></div>
+      </div>
+      <div class="reading-layout">
+        <div class="passage-panel" id="passagePanel"></div>
+        <div class="q-panel">
+          <h2 id="readQTitle"></h2>
+          <div id="readQuiz"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>IELTS Mate · 个人学习项目 · 听力语音由浏览器语音合成引擎生成，仅作学习用途</footer>
+
+<script>
+/* ================= 听力数据 ================= */
+const LISTEN = [
+{
+  id:"l1", title:"Renting a Flat in the City", part:"Section 1 · 生活对话", level:"入门", words:"约 220 词",
+  desc:"学生 Emma 致电中介咨询租房，包含价格、位置、押金等高频考点场景。",
+  dialog:[
+    ["Agent","Good morning, City Lettings. How can I help you?"],
+    ["Emma","Hello, I'm looking for a two-bedroom flat near the university. My name is Emma."],
+    ["Agent","Nice to meet you, Emma. We have three flats available in that area. When would you like to move in?"],
+    ["Emma","At the beginning of September, before the new term starts."],
+    ["Agent","Perfect. The first one is on Garden Road. It's twenty minutes on foot from the university, and the rent is 650 pounds a month."],
+    ["Emma","Hmm, that's a bit far for me. What about the others?"],
+    ["Agent","The second flat is closer — just five minutes from campus — but it costs 800 pounds a month, bills included."],
+    ["Emma","That sounds more convenient. Does it come furnished?"],
+    ["Agent","Yes, it has a bed, a desk, a wardrobe and a small sofa. But the kitchen is quite tiny."],
+    ["Emma","I don't mind a small kitchen as long as the location is good. What about the deposit?"],
+    ["Agent","The deposit is one month's rent, and you'll get it back at the end of the contract if there's no damage."],
+    ["Emma","Great. Could I visit the flat this weekend?"],
+    ["Agent","Of course. How about Saturday at 10 a.m.? I'll meet you in front of the building."],
+    ["Emma","Saturday at ten. Perfect, thank you very much."]
+  ],
+  quiz:[
+    {q:"How many flats are available near the university?", opts:["One","Two","Three","Four"], a:2,
+     ex:"中介说 We have three flats available in that area."},
+    {q:"How much is the rent of the flat on Garden Road?", opts:["£560","£650","£800","£850"], a:1,
+     ex:"原文：the rent is 650 pounds a month。注意数字辨音 sixty-five hundred 与 850 的区别。"},
+    {q:"Why does Emma prefer the second flat?", opts:["It has a big kitchen","It is closer to campus","It is cheaper","It has a garden"], a:1,
+     ex:"第二套离校园步行仅五分钟，Emma 说 That sounds more convenient。"},
+    {q:"When will Emma visit the flat?", opts:["Friday 10 a.m.","Saturday 10 a.m.","Saturday 4 p.m.","Sunday 10 a.m."], a:1,
+     ex:"预约时间为 Saturday at 10 a.m.，考察时间+星期组合抓取。"}
+  ]
+},
+{
+  id:"l2", title:"Choosing an Evening Course", part:"Section 1 · 咨询对话", level:"初级", words:"约 210 词",
+  desc:"Daniel 向社区大学咨询晚间课程，涉及课程时间、学费与报名方式。",
+  dialog:[
+    ["Clerk","Westfield Community College, good afternoon."],
+    ["Daniel","Hello, I'd like some information about your evening courses, please."],
+    ["Clerk","Certainly. Which subject are you interested in?"],
+    ["Daniel","I saw a poster about photography. Is that course still open?"],
+    ["Clerk","Yes, we still have a few places left. It runs on Tuesday evenings, from 7 to 9 o'clock."],
+    ["Daniel","Tuesday evening suits me well. How long does the course last?"],
+    ["Clerk","It's a ten-week course, and it starts on the 14th of October."],
+    ["Daniel","And what's the fee?"],
+    ["Clerk","It's 120 pounds for the whole course, but students get a 20 percent discount."],
+    ["Daniel","Oh, I'm a full-time student, so that would be 96 pounds. Do I need to bring my own camera?"],
+    ["Clerk","A basic camera is fine — a phone camera is also acceptable. The teacher will lend professional cameras for some lessons."],
+    ["Daniel","That's helpful. How do I enrol?"],
+    ["Clerk","You can enrol online through our website, or come to the front desk before Friday."],
+    ["Daniel","I'll do it online tonight. Thanks a lot."]
+  ],
+  quiz:[
+    {q:"When does the photography class take place?", opts:["Monday evening","Tuesday evening","Thursday evening","Friday evening"], a:1,
+     ex:"原文：It runs on Tuesday evenings, from 7 to 9 o'clock."},
+    {q:"How many weeks does the course last?", opts:["8","10","12","14"], a:1,
+     ex:"It's a ten-week course。数字考点。"},
+    {q:"How much will Daniel pay as a full-time student?", opts:["£96","£100","£120","£140"], a:0,
+     ex:"£120 打八折 = £96，考察折扣计算。"},
+    {q:"What camera does Daniel need to bring?", opts:["A professional camera","A film camera","Any basic camera including a phone","No camera is allowed"], a:2,
+     ex:"职员说 A basic camera is fine — a phone camera is also acceptable。"}
+  ]
+},
+{
+  id:"l3", title:"Why Cities Need Green Roofs", part:"Section 4 · 学术独白", level:"中级", words:"约 260 词",
+  desc:"一段关于城市绿色屋顶的环境类学术独白，为雅思听力 Part 4 常见主题。",
+  dialog:[
+    ["Lecturer","Good morning, everyone. Today I want to talk about an increasingly popular solution to urban environmental problems: green roofs."],
+    ["Lecturer","A green roof is, quite simply, a roof that is partially or completely covered with vegetation, planted over a waterproof layer."],
+    ["Lecturer","The idea is not new — turf roofs have existed in Scandinavia for centuries — but modern cities are now rediscovering their benefits."],
+    ["Lecturer","First, green roofs reduce the so-called heat island effect. Concrete buildings absorb heat during the day and release it at night, making cities several degrees warmer than the surrounding countryside."],
+    ["Lecturer","Plants, on the other hand, cool the air through evaporation. Studies in Toronto show that if just half of the city's roofs were greened, summer temperatures could fall by up to two degrees."],
+    ["Lecturer","Second, green roofs manage storm water. In a heavy storm, a normal roof sends almost all the rain straight into the drains, which often causes flooding."],
+    ["Lecturer","A green roof can absorb up to seventy-five percent of that rainwater, releasing the rest slowly."],
+    ["Lecturer","Third, they provide habitats. Insects, birds and even rare bees have been found living on green roofs in London, where ground-level parks are too far apart."],
+    ["Lecturer","Finally, there is an economic benefit. Although a green roof costs more to install, it doubles or even triples the lifespan of the roof, because the plants protect it from sunlight and temperature changes."],
+    ["Lecturer","So, while the initial investment is higher, the long-term savings are considerable. Any questions so far?"]
+  ],
+  quiz:[
+    {q:"What is the heat island effect caused by?", opts:["Plants on roofs","Concrete absorbing and releasing heat","Heavy storms","Traffic noise"], a:1,
+     ex:"独白指出混凝土建筑白天吸热、夜间放热导致城市更热。"},
+    {q:"According to studies in Toronto, greening half the roofs could lower summer temperatures by up to:", opts:["1 degree","2 degrees","5 degrees","7 degrees"], a:1,
+     ex:"summer temperatures could fall by up to two degrees。"},
+    {q:"What proportion of rainwater can a green roof absorb?", opts:["Up to 25%","Up to 50%","Up to 75%","Up to 95%"], a:2,
+     ex:"A green roof can absorb up to seventy-five percent of that rainwater。"},
+    {q:"Why is a green roof cheaper in the long run?", opts:["It needs no maintenance","It protects the roof and extends its life","It generates electricity","It reduces staff costs"], a:1,
+     ex:"植物使屋顶寿命翻倍甚至三倍，长期省钱。"}
+  ]
+},
+{
+  id:"l4", title:"Volunteering at a Wildlife Centre", part:"Section 2 · 介绍访谈", level:"初级", words:"约 220 词",
+  desc:"协调员向新志愿者介绍野生动物中心的日常工作安排与注意事项。",
+  dialog:[
+    ["Coordinator","Welcome, everyone, and thank you for volunteering at the Riverside Wildlife Centre this summer."],
+    ["Coordinator","Before we start, let me explain how the centre is organised. We have three main areas: the bird hospital, the mammal house and the outdoor ponds."],
+    ["Coordinator","Most of you will begin in the bird hospital, where we treat around two hundred injured birds every month."],
+    ["Coordinator","Your morning shift starts at eight o'clock sharp. Please don't be late, because the animals are fed first thing in the morning."],
+    ["Coordinator","You'll be given a green uniform and a pair of gloves. Remember to wash your hands after touching any animal — some of them carry diseases."],
+    ["Coordinator","Now, a few rules. Never feed the animals without permission. The diet of each animal is carefully planned by our vet."],
+    ["Coordinator","Also, please keep quiet near the cages. Loud noise frightens the animals and slows their recovery."],
+    ["Coordinator","Lunch break is from half past twelve to one thirty, and you're welcome to use the staff canteen."],
+    ["Coordinator","If you have any problems, come and find me in the office next to reception — my name is Sarah."],
+    ["Coordinator","Thank you all for being here. The animals are lucky to have you!"]
+  ],
+  quiz:[
+    {q:"Where will most volunteers start working?", opts:["The outdoor ponds","The mammal house","The bird hospital","The reception"], a:2,
+     ex:"Most of you will begin in the bird hospital。"},
+    {q:"What time does the morning shift start?", opts:["7:00","8:00","8:30","9:00"], a:1,
+     ex:"Your morning shift starts at eight o'clock sharp。"},
+    {q:"What colour is the volunteer uniform?", opts:["Blue","Green","Red","White"], a:1,
+     ex:"You'll be given a green uniform and a pair of gloves。"},
+    {q:"What are volunteers told NOT to do?", opts:["Wash their hands","Feed the animals","Wear gloves","Keep quiet"], a:1,
+     ex:"Never feed the animals without permission。"}
+  ]
+}
+];
+
+/* ================= 口语数据 ================= */
+const SPEAK = {
+p1:[
+  { id:"s1", title:"Hometown 家乡",
+    cue:"Let's talk about where you live.",
+    bullets:["Where is your hometown?","What do you like most about it?","Has it changed much in recent years?"],
+    vocab:[["metropolis","大都市"],["coastal city","沿海城市"],["laid-back","悠闲的"],["infrastructure","基础设施"],["urbanisation","城市化"],["real estate","房地产"],["convenient transport","便利的交通"],["sense of community","社区归属感"],["night market","夜市"],["face-lift","（城市）翻新改造"]],
+    exprs:[
+      {en:"My hometown is a mid-sized city known for its tea plantations.", zh:"我的家乡是一座以茶园闻名的中型城市。"},
+      {en:"What I love most about it is the laid-back pace of life.", zh:"我最喜欢的是那里悠闲的生活节奏。"},
+      {en:"It has undergone a dramatic transformation over the past decade.", zh:"过去十年它经历了巨大的变化。"},
+      {en:"The local government has invested heavily in infrastructure.", zh:"当地政府在基础设施上投入巨大。"},
+      {en:"Whenever I go back, a wave of nostalgia hits me.", zh:"每次回去， nostalgia 都会涌上心头。"}],
+    qs:["To start with, could you tell me where your hometown is?","What do you like most about living there?","Has your hometown changed much since you were a child?","Would you like to live there in the future? Why or why not?"] },
+  { id:"s2", title:"Free Time & Hobbies 业余爱好",
+    cue:"Let's talk about what you do in your free time.",
+    bullets:["What do you do in your free time?","Did you have the same hobbies as a child?","Do you prefer doing hobbies alone or with friends?"],
+    vocab:[["recreational activity","娱乐活动"],["unwind","放松"],["painting","绘画"],["hiking","徒步"],["workout","健身"],["addicted to","沉迷于"],["take up a hobby","培养爱好"],["kill time","消磨时间"],["team spirit","团队精神"],["me time","专属自己的时间"]],
+    exprs:[
+      {en:"I usually unwind by playing badminton with my colleagues.", zh:"我通常和同事打羽毛球放松。"},
+      {en:"Painting helps me take my mind off work.", zh:"画画能让我暂时忘掉工作。"},
+      {en:"I've recently taken up photography as a hobby.", zh:"我最近开始培养摄影这个爱好。"},
+      {en:"Team sports taught me the value of cooperation.", zh:"团队运动让我学会合作的价值。"},
+      {en:"Weekends are my precious me time.", zh:"周末是我宝贵的个人时间。"}],
+    qs:["What do you usually do in your free time?","Do you have any hobbies you've kept since childhood?","Do you prefer relaxing alone or with friends?","Is there a new hobby you'd like to try?"] },
+  { id:"s3", title:"Work or Study 工作或学习",
+    cue:"Let's talk about your work or studies.",
+    bullets:["Do you work or are you a student?","What do you find most challenging?","What are your plans for the future?"],
+    vocab:[["curriculum","课程体系"],["deadline","截止日期"],["workload","工作量"],["burnout","职业倦怠"],["major in","主修"],[" internship","实习"],["career path","职业道路"],["self-discipline","自律"],["extracurricular","课外的"],["long-term goal","长期目标"]],
+    exprs:[
+      {en:"I'm majoring in computer science at university.", zh:"我在大学主修计算机科学。"},
+      {en:"The toughest part is juggling multiple deadlines.", zh:"最难的是同时应付多个截止日期。"},
+      {en:"I'm planning to pursue a master's degree abroad.", zh:"我打算去国外读硕士。"},
+      {en:"Good time management keeps me from burning out.", zh:"好的时间管理让我避免倦怠。"},
+      {en:"My long-term goal is to start my own business.", zh:"我的长期目标是创业。"}],
+    qs:["Are you currently working or studying?","What subject are you studying, and why did you choose it?","What do you find most difficult about it?","What would you like to do after you graduate?"] },
+  { id:"s4", title:"Food & Cooking 食物与烹饪",
+    cue:"Let's talk about food and cooking.",
+    bullets:["Do you enjoy cooking?","What is a popular dish in your country?","Have your eating habits changed recently?"],
+    vocab:[["cuisine","菜系"],["ingredients","食材"],["simmer","小火慢炖"],["nutritious","有营养的"],["takeaway","外卖"],["vegetarian","素食者"],["home-cooked meal","家常菜"],["flavour","味道"],["street food","街头小吃"],["balanced diet","均衡饮食"]],
+    exprs:[
+      {en:"Cooking is a great way to de-stress after a long day.", zh:"烹饪是漫长一天后解压的好方式。"},
+      {en:"Hotpot is arguably the most popular dish in my country.", zh:"火锅可以说是我国最受欢迎的菜。"},
+      {en:"I've been trying to cut down on takeaway food.", zh:"我一直在努力少吃外卖。"},
+      {en:"My grandmother taught me how to simmer soup slowly.", zh:"奶奶教我小火慢炖汤。"},
+      {en:"A balanced diet matters more than fancy ingredients.", zh:"均衡饮食比昂贵的食材更重要。"}],
+    qs:["Do you like cooking, or do you prefer eating out?","What's a famous dish from your region?","Have your eating habits changed over the years?","Do you think young people eat more healthily than before?"] }
+],
+p2:[
+  { id:"s5", title:"Describe a person who has inspired you",
+    cue:"Describe a person who has inspired you.",
+    bullets:["who this person is","how you know this person","what this person has done","and explain why this person inspired you"],
+    vocab:[["role model","榜样"],["perseverance","毅力"],["selfless","无私的"],["determination","决心"],["compassion","同情心"],["achieve against all odds","逆境成功"],["look up to","敬仰"],["make a difference","带来改变"],["humble","谦逊的"],["dedication","奉献"]],
+    exprs:[
+      {en:"The person who inspires me most is my high-school physics teacher.", zh:"最激励我的人是我的高中物理老师。"},
+      {en:"Despite coming from a poor family, she never gave up on her dreams.", zh:"尽管出身贫寒，她从未放弃梦想。"},
+      {en:"Her perseverance in the face of failure taught me resilience.", zh:"她面对失败的毅力教会了我坚韧。"},
+      {en:"She always encouraged us to aim high.", zh:"她总是鼓励我们志存高远。"},
+      {en:"Thanks to her, I believe hard work eventually pays off.", zh:"因为她，我相信努力终有回报。"}],
+    qs:["Who would you like to talk about?","How did this person first inspire you?","Can you describe one specific thing they did?","How has this person changed the way you live or study?","Do you think famous people make good role models?"] },
+  { id:"s6", title:"Describe a place you love to visit",
+    cue:"Describe a place you love to visit.",
+    bullets:["where it is","how often you go there","what you do there","and explain why you love visiting it"],
+    vocab:[["scenic spot","景点"],["breathtaking view","令人惊叹的景色"],["tranquil","宁静的"],["getaway","短假出游"],["off the beaten track","人迹罕至"],["local delicacy","当地美食"],["soak up the atmosphere","感受氛围"],["picturesque","如画的"],["tourist trap","宰客景点"],["recharge my batteries","恢复精力"]],
+    exprs:[
+      {en:"My favourite getaway is a small lakeside town two hours from my city.", zh:"我最爱的度假地是离城两小时的一座湖边小镇。"},
+      {en:"The moment I arrive, I feel completely recharged.", zh:"一到那里我就感觉精力完全恢复。"},
+      {en:"The view of the lake at sunset is absolutely breathtaking.", zh:"日落时分的湖景美得令人窒息。"},
+      {en:"I try to escape there at least twice a year.", zh:"我尽量每年去至少两次。"},
+      {en:"It's still off the beaten track, so it's never crowded.", zh:"那里还比较小众，从不拥挤。"}],
+    qs:["Where is this place, and how do you usually get there?","What do you normally do when you're there?","Why does this place mean so much to you?","Has tourism changed the place in recent years?","Do you prefer travelling to famous attractions or quiet places?"] },
+  { id:"s7", title:"Describe an achievement you are proud of",
+    cue:"Describe an achievement you are proud of.",
+    bullets:["what you achieved","when and where it happened","how you achieved it","and explain why you feel proud of it"],
+    vocab:[["milestone","里程碑"],["push my limits","挑战极限"],["give it my best shot","全力以赴"],["breakthrough","突破"],["self-fulfilment","自我实现"],["persevere","坚持不懈"],["out of my comfort zone","走出舒适区"],["pay off","（努力）得到回报"],["confidence boost","信心提升"],["hard-earned","来之不易的"]],
+    exprs:[
+      {en:"The achievement I'm proudest of is finishing my first half-marathon.", zh:"我最骄傲的成就是完成首个半程马拉松。"},
+      {en:"At first, running five kilometres was already a struggle.", zh:"起初，跑五公里都很吃力。"},
+      {en:"I trained for six months, rain or shine.", zh:"我风雨无阻地训练了六个月。"},
+      {en:"Crossing the finish line felt like a real breakthrough.", zh:"冲过终点线的感觉像是真正的突破。"},
+      {en:"It taught me that consistency beats talent.", zh:"它让我明白坚持胜过天赋。"}],
+    qs:["What achievement would you like to share?","Why was it difficult for you at the beginning?","How exactly did you manage to achieve it?","How did other people react to your success?","What is your next big goal?"] },
+  { id:"s8", title:"Describe a useful website or app",
+    cue:"Describe a useful website or app you have used.",
+    bullets:["what it is","how you found it","what you use it for","and explain why you find it useful"],
+    vocab:[["user-friendly","易用的"],["feature-rich","功能丰富的"],["subscription","订阅"],["efficiency","效率"],["update","更新"],["recommendation","推荐"],["notifications","通知"],["interface","界面"],["save time","节省时间"],["go-to tool","首选工具"]],
+    exprs:[
+      {en:"An app I can't live without is a vocabulary-building tool.", zh:"一个我离不开的应用是背单词软件。"},
+      {en:"A friend recommended it to me last year.", zh:"去年一位朋友推荐给我的。"},
+      {en:"Its interface is incredibly user-friendly.", zh:"它的界面非常易用。"},
+      {en:"It sends me daily reminders, so I never skip a session.", zh:"它每天发提醒，我从不间断。"},
+      {en:"It has become my go-to tool for learning English.", zh:"它成了我学英语的首选工具。"}],
+    qs:["What website or app would you like to describe?","How did you first discover it?","What do you mainly use it for?","What makes it better than similar ones?","Do you think people spend too much time on apps?"] }
+]
+};
+
+/* ================= 阅读数据 ================= */
+const READ = [
+{
+  id:"r1", title:"The Rhythm of Sleep", level:"Test 1 · Passage 1", time:"建议 18 分钟", words:"约 620 词",
+  paras:[
+   ["A","For something we spend a third of our lives doing, sleep remains remarkably mysterious. Scientists once believed the brain simply 'switched off' at night. Electroencephalogram (EEG) recordings, first made in the 1930s, overturned this view by revealing that sleeping brains are highly active, passing through several distinct stages in a repeating cycle of roughly ninety minutes."],
+   ["B","The best-known stages are rapid eye movement (REM) sleep, when vivid dreams occur and the body is temporarily paralysed, and slow-wave sleep, a deep state in which brain activity slows to broad, rolling waves. Slow-wave sleep dominates the first half of the night, while REM periods grow progressively longer towards morning. This timing matters: the brain schedules different kinds of maintenance in different stages."],
+   ["C","During slow-wave sleep, the brain appears to flush out metabolic waste. In 2013, researchers at the University of Rochester reported that the spaces between brain cells expand by up to 60 percent during deep sleep, allowing cerebrospinal fluid to wash away proteins that accumulate during waking hours. One of these proteins, beta-amyloid, is implicated in Alzheimer's disease, leading some scientists to argue that chronic sleep loss may raise the risk of dementia."],
+   ["D","Sleep also consolidates memory. In a classic experiment, students who slept after learning a list of words recalled significantly more the next morning than peers who stayed awake. Subsequent studies refined the picture: vocabulary and factual knowledge benefit particularly from slow-wave sleep, whereas emotional memories and motor skills are strengthened during REM. Musicians, for instance, show measurable improvement in finger-tapping sequences after a night rich in REM."],
+   ["E","Modern life, however, is at war with these ancient rhythms. Artificial light delays the release of melatonin, the hormone that signals darkness, while screens add mental stimulation late into the evening. Surveys across industrialised countries suggest average sleep duration has fallen by more than an hour over the past fifty years, and roughly a third of adults now report sleeping less than the recommended seven hours."],
+   ["F","The economic cost is considerable. A 2016 study by the RAND Corporation estimated that insufficient sleep shaves up to 2.4 percent off GDP in the worst-affected nations through lost productivity, workplace accidents and higher illness. Some employers have responded with 'nap pods' and later start times; schools in several American states have pushed back morning classes after evidence emerged that teenagers, whose body clocks run late, perform better with a later schedule."],
+   ["G","Whether such measures will spread remains uncertain. What is clear is that sleep is not an optional luxury but a biological necessity — and one that science is only beginning to understand."]
+  ],
+  quiz:[
+    {type:"tf", qs:[
+      {q:"Early scientists believed the brain was inactive during sleep.", a:"TRUE",
+       ex:"A 段：Scientists once believed the brain simply 'switched off' at night —— 即认为大脑不活跃，后被打翻。"},
+      {q:"Slow-wave sleep occurs mainly in the second half of the night.", a:"FALSE",
+       ex:"B 段明确说 Slow-wave sleep dominates the first half of the night。"},
+      {q:"Beta-amyloid is the only protein linked to dementia.", a:"NOT GIVEN",
+       ex:"C 段只说 beta-amyloid 与阿尔茨海默病有关，未说是'唯一'相关蛋白。"},
+      {q:"Teenagers' body clocks make them naturally suited to early school starts.", a:"FALSE",
+       ex:"F 段说 teenagers 的生物钟偏晚，推迟上课后表现更好。"}
+    ]},
+    {type:"mc", title:"Choose the correct letter, A, B, C or D.", qs:[
+      {q:"What did the Rochester researchers discover in 2013?", opts:["Brain cells shrink during sleep","Deep sleep enlarges spaces between brain cells","Melatonin is released only at night","Dreams help remove waste"], a:1,
+       ex:"C 段：the spaces between brain cells expand by up to 60 percent during deep sleep。"},
+      {q:"According to the passage, which skill benefits most from REM sleep?", opts:["Learning vocabulary","Recalling word lists","Improving finger-tapping sequences","Flushing out protein"], a:2,
+       ex:"D 段：Musicians show measurable improvement in finger-tapping sequences after REM-rich sleep。"},
+      {q:"What does the RAND study suggest?", opts:["Naps reduce GDP","Sleep loss has measurable economic costs","GDP causes sleep loss","Employers should cut working hours"], a:1,
+       ex:"F 段：insufficient sleep 使部分国家 GDP 损失最高达 2.4%。"}
+    ]}
+  ]
+},
+{
+  id:"r2", title:"Farming Grows Upward", level:"Test 2 · Passage 2", time:"建议 20 分钟", words:"约 600 词",
+  paras:[
+   ["A","By 2050, the United Nations predicts, nearly seven in ten humans will live in cities. Feeding them will require either far more land than exists today or a fundamental rethink of where food is grown. A growing number of entrepreneurs believe the answer is vertical: growing crops upwards, inside purpose-built towers, on urban rooftops and even in converted shipping containers."],
+   ["B","The appeal is obvious. A vertical farm stacks growing trays in tall racks, bathing each layer in tailored LED light. Because conditions are controlled, harvests are predictable and can run all year regardless of weather. Water use falls by up to 95 percent compared with field farming, as moisture is recycled within the closed system. And because the farm sits inside the city, produce travels metres — not thousands of kilometres — to the consumer, dramatically cutting transport emissions and spoilage."],
+   ["C","Yet enthusiasm must be weighed against hard economics. LEDs, climate control and nutrient pumps consume electricity around the clock, and energy is typically a vertical farm's largest cost. Several high-profile ventures have collapsed after failing to turn a profit. Critics note that staples such as wheat, rice or maize — the calories that actually feed the world — cannot be grown profitably indoors; current systems suit high-value, fast-growing leafy greens and herbs instead."],
+   ["D","Supporters respond that the economics shift as technology matures. LED efficiency has improved roughly twentyfold since 2010, and falling prices of sensors and automation software keep pushing costs down. In Singapore and the Gulf states, where fertile land is scarce and most food is imported, governments now subsidise vertical farms as a matter of food security rather than chasing profit alone."],
+   ["E","A quieter revolution is happening at street level. Community gardens and rooftop allotments rarely feed a city, but researchers have documented wider benefits: fresher produce in 'food deserts', exercise and social contact for participants, cooler microclimates in dense districts, and habitats for pollinating insects. In Paris, a 14,000-square-metre rooftop farm now supplies restaurants and residents with more than a tonne of produce per day."],
+   ["F","No one seriously claims that towers of lettuce will replace the wheat fields of the Great Plains. The realistic future is one of complementarity: conventional farms for staple grains, vertical farms for perishable greens grown beside the consumers who eat them, and rooftop gardens knitting food production into the urban fabric. The farm of the future, in other words, will not just grow outward — it will also grow up."]
+  ],
+  quiz:[
+    {type:"match", title:"Match each paragraph with the correct heading.", qs:[
+      {q:"Paragraph B", opts:["The environmental and freshness advantages","Why staple grains stay outdoors","A quiet success of rooftop growing","Government support in land-scarce states"], a:0,
+       ex:"B 段讲省水 95%、全年产出、就近供应减少运输排放。"},
+      {q:"Paragraph C", opts:["Government support in land-scarce states","The profitability problem","A quiet success of rooftop growing","Technology keeps improving"], a:1,
+       ex:"C 段讲耗电成本高、明星公司倒闭、主粮无法盈利。"},
+      {q:"Paragraph E", opts:["The profitability problem","Technology keeps improving","Broader community benefits of urban growing","The environmental and freshness advantages"], a:2,
+       ex:"E 段讲社区花园带来的新鲜食物、运动、社交、降温与昆虫栖息等综合效益。"}
+    ]},
+    {type:"mc", title:"Choose the correct letter, A, B, C or D.", qs:[
+      {q:"What is the main economic weakness of vertical farms?", opts:["They grow crops too slowly","Electricity is their biggest expense","Their produce spoils quickly","They need imported soil"], a:1,
+       ex:"C 段：energy is typically a vertical farm's largest cost。"},
+      {q:"Why do Singapore and Gulf states subsidise vertical farms?", opts:["To create tourist attractions","Because LED prices rose","As a food-security strategy","To reduce urban heat"], a:2,
+       ex:"D 段：governments subsidise vertical farms as a matter of food security。"},
+      {q:"What is the author's overall view of the future of farming?", opts:["Vertical farms will replace field farming","Rooftop gardens will feed all cities","Different growing methods will coexist","Urban farming is a passing fashion"], a:2,
+       ex:"F 段明确指出 complementarity：主粮靠大田，叶菜靠城市垂直农场，两者互补。"}
+    ]}
+  ]
+}
+];
+
+/* ================= 通用 ================= */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const store = {
+  get sessions(){ return +(localStorage.getItem("im_sessions")||0) },
+  add(){ localStorage.setItem("im_sessions", this.sessions+1); refreshPill(); }
+};
+function refreshPill(){ $("#globalScore").textContent = "累计练习：" + store.sessions + " 次"; }
+refreshPill();
+
+$$(".tab-btn").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
+$$("[data-goto]").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.goto)));
+function showPage(name){
+  $$(".page").forEach(p=>p.classList.remove("active"));
+  $("#page-"+name).classList.add("active");
+  $$(".tab-btn").forEach(b=>b.classList.toggle("active",b.dataset.page===name));
+  window.scrollTo(0,0);
+  stopSpeak(); resetSpeakUI();
+}
+
+/* ================= 语音引擎 ================= */
+let voices = [];
+function loadVoices(){ voices = speechSynthesis.getVoices(); }
+loadVoices();
+if (speechSynthesis) speechSynthesis.onvoiceschanged = loadVoices;
+function gbVoices(){
+  const gb = voices.filter(v=>/en[-_]GB/i.test(v.lang));
+  return gb.length ? gb : voices.filter(v=>/^en/i.test(v.lang));
+}
+function speak(text, {rate=1, pitch=1, voice=null, onend=null}={}){
+  if(!("speechSynthesis" in window)) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "en-GB"; u.rate = rate; u.pitch = pitch;
+  if(voice) u.voice = voice;
+  if(onend) u.onend = onend;
+  speechSynthesis.speak(u);
+  return u;
+}
+function stopSpeak(){ if(window.speechSynthesis) speechSynthesis.cancel(); }
+
+/* ================= 听力 ================= */
+let curListen = null, li = 0, playing = false, lSpeed = 0.85, transcriptHidden = false;
+const speakerVoices = {};
+
+$("#statListen").textContent = LISTEN.length + " 篇";
+
+function renderListenList(){
+  $("#listenItems").innerHTML = LISTEN.map(m=>`
+    <div class="list-item">
+      <div class="info">
+        <h3>${m.title}</h3>
+        <div><span class="badge">${m.part}</span><span class="badge blue">${m.level}</span><span class="badge gray">${m.words}</span></div>
+        <div class="meta">${m.desc}</div>
+      </div>
+      <button class="btn primary" onclick="openListen('${m.id}')">开始精听</button>
+    </div>`).join("");
+}
+function openListen(id){
+  curListen = LISTEN.find(m=>m.id===id); li = 0; playing = false;
+  $("#listenList").classList.add("hidden");
+  $("#listenPlayer").classList.remove("hidden");
+  $("#pTitle").textContent = curListen.title;
+  $("#pMeta").textContent = curListen.part + " · " + curListen.words + " · 生成朗读者：" + [...new Set(curListen.dialog.map(d=>d[0]))].join(" / ");
+  $("#transcript").innerHTML = curListen.dialog.map((d,i)=>`<div class="t-line" id="tl${i}"><b>${d[0]}</b><span class="txt">${d[1]}</span></div>`).join("");
+  renderListenQuiz();
+  highlightLine(-1);
+  window.scrollTo(0,0);
+}
+function listenBack(){
+  stopSpeak(); playing=false; resetSpeakUI();
+  $("#listenPlayer").classList.add("hidden");
+  $("#listenList").classList.remove("hidden");
+}
+function highlightLine(i){
+  $$("#transcript .t-line").forEach(el=>el.classList.remove("now"));
+  if(i>=0){ const el=$("#tl"+i); el.classList.add("now"); el.scrollIntoView({block:"nearest",behavior:"smooth"}); }
+  $("#pFill").style.width = ((i+1)/curListen.dialog.length*100)+"%";
+}
+function resetSpeakUI(){ const b=$("#btnPlay"); if(b) b.textContent="▶"; }
+
+function playLine(i){
+  if(!curListen) return;
+  if(i<0 || i>=curListen.dialog.length){ playing=false; resetSpeakUI(); highlightLine(-1); return; }
+  li = i; highlightLine(i);
+  const [sp, txt] = curListen.dialog[i];
+  if(!speakerVoices[sp]){
+    const pool = gbVoices();
+    speakerVoices[sp] = pool.length ? pool[(sp.length + Object.keys(speakerVoices).length) % pool.length] : null;
+  }
+  speak(txt, {rate:lSpeed, pitch: sp.length>6?0.85:1.1, voice: speakerVoices[sp], onend:()=>{
+    if(!playing) return;
+    if(li+1 < curListen.dialog.length) setTimeout(()=>playLine(li+1), 350);
+    else { playing=false; resetSpeakUI(); }
+  }});
+}
+$("#btnPlay").addEventListener("click",()=>{
+  if(playing){ playing=false; stopSpeak(); $("#btnPlay").textContent="▶"; return; }
+  playing = true; $("#btnPlay").textContent="⏸";
+  playLine(li);
+});
+$("#btnPrev").addEventListener("click",()=>{ playing=true; $("#btnPlay").textContent="⏸"; playLine(Math.max(0,li-1)); });
+$("#btnNext").addEventListener("click",()=>{ playing=true; $("#btnPlay").textContent="⏸"; playLine(li+1); });
+$("#btnRepeat").addEventListener("click",()=>{ playing=false; $("#btnPlay").textContent="▶"; playLine(li); });
+$$("#speedGroup .speed-btn").forEach(b=>b.addEventListener("click",()=>{
+  $$("#speedGroup .speed-btn").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on"); lSpeed = +b.dataset.speed;
+}));
+$("#btnTranscript").addEventListener("click",()=>{
+  transcriptHidden = !transcriptHidden;
+  $$("#transcript .t-line").forEach(el=>el.classList.toggle("hidden-mode", transcriptHidden));
+  $("#btnTranscript").textContent = transcriptHidden ? "显示字幕" : "隐藏字幕";
+});
+
+function renderListenQuiz(){
+  $("#listenQuiz").innerHTML = curListen.quiz.map((q,qi)=>`
+    <div class="q-item" data-qi="${qi}">
+      <p class="q">${qi+1}. ${q.q}</p>
+      ${q.opts.map((o,oi)=>`<div class="opt" data-oi="${oi}" onclick="pickOpt(this)"><span class="letter">${"ABCD"[oi]}.</span> ${o}</div>`).join("")}
+      <div class="explain">解析：${q.ex}</div>
+    </div>`).join("");
+  $("#btnSubmitListen").disabled = false;
+  $("#btnSubmitListen").textContent = "提交答案";
+  const banner = document.querySelector(".result-banner"); if(banner) banner.remove();
+}
+function pickOpt(el){
+  const item = el.closest(".q-item");
+  item.querySelectorAll(".opt").forEach(o=>o.classList.remove("sel"));
+  el.classList.add("sel");
+}
+$("#btnSubmitListen").addEventListener("click",function(){
+  let right = 0;
+  $$("#listenQuiz .q-item").forEach(item=>{
+    const qi = +item.dataset.qi, ans = curListen.quiz[qi].a;
+    const sel = item.querySelector(".opt.sel");
+    item.querySelectorAll(".opt").forEach(o=>{
+      o.onclick = null;
+      if(+o.dataset.oi===ans) o.classList.add("right");
+    });
+    if(sel && +sel.dataset.oi===ans) right++;
+    item.querySelector(".explain").style.display="block";
+  });
+  const pct = right/curListen.quiz.length;
+  const cls = pct>=0.75?"good":(pct>=0.5?"mid":"bad");
+  this.insertAdjacentHTML("beforebegin",
+    `<div class="result-banner ${cls}">得分：${right} / ${curListen.quiz.length}（${Math.round(pct*100)}%）${pct>=0.75?" 优秀！继续保持 🎉":" 错题解析已展开，建议重听一遍原文 🔁"}</div>`);
+  this.disabled = true; this.textContent = "已完成本篇练习";
+  store.add();
+});
+
+/* ================= 口语 ================= */
+$("#statSpeak").textContent = (SPEAK.p1.length+SPEAK.p2.length) + " 个";
+let curPart = "p1", curTopic = null, partnerQs = [], qPtr = 0;
+const ackPool = ["Good. Tell me more about that.","Interesting! Can you give me an example?","I see. Why do you think that is?","That's a nice point. Anything else you'd like to add?"];
+
+function renderChips(){
+  $("#topicChips").innerHTML = SPEAK[curPart].map(t=>`<span class="topic-chip" onclick="openTopic('${t.id}')">${t.title}</span>`).join("");
+}
+$$(".part-tab").forEach(b=>b.addEventListener("click",()=>{
+  $$(".part-tab").forEach(x=>x.classList.remove("on"));
+  b.classList.add("on"); curPart = b.dataset.part; renderChips();
+}));
+$("#btnDraw").addEventListener("click",()=>{
+  const pool = [...SPEAK.p1,...SPEAK.p2];
+  curTopic = pool[Math.floor(Math.random()*pool.length)];
+  $("#drawResult").style.display = "block";
+  $("#drawPart").textContent = curPart.startsWith("p1") ? "Part 1" : "Part 2";
+  $("#drawTitle").textContent = " " + curTopic.title;
+});
+$("#btnGoTopic").addEventListener("click",()=>openTopic(curTopic.id));
+
+function findTopic(id){ return SPEAK.p1.find(t=>t.id===id) || SPEAK.p2.find(t=>t.id===id); }
+function speakExpr(i){ if(curTopic) speak(curTopic.exprs[i].en, {rate:0.9}); }
+function openTopic(id){
+  curTopic = findTopic(id); if(!curTopic) return;
+  partnerQs = curTopic.qs; qPtr = 0;
+  $("#speakHome").classList.add("hidden");
+  $("#speakDetail").classList.remove("hidden");
+  $("#sdHead").innerHTML = `<h1>${curTopic.title}</h1><span class="badge">${SPEAK.p1.includes(curTopic)?"Part 1":"Part 2"}</span>`;
+  $("#sdCue").innerHTML = `<p style="font-weight:600;font-size:16px">${curTopic.cue}</p><ul>${curTopic.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>`;
+  $("#sdVocab").innerHTML = curTopic.vocab.map(v=>`<span class="vocab-item">${v[0]}<i>${v[1]}</i></span>`).join("");
+  $("#sdExprs").innerHTML = curTopic.exprs.map((e,i)=>`<div class="expr-li" onclick="speakExpr(${i})">${e.en}<small>${e.zh}</small></div>`).join("");
+  $("#chatBox").innerHTML = "";
+  showSim(SPEAK.p2.includes(curTopic));
+  resetSim();
+  addMsg("ai", partnerQs[0], true);
+  window.scrollTo(0,0);
+}
+function speakBack(){
+  stopSpeak();
+  clearInterval(prepInt); clearInterval(talkInt);
+  if(simSR){ try{ simSR.stop(); }catch(e){} simSR = null; }
+  if(simRec && simRec.state !== "inactive"){ try{ simRec.stop(); }catch(e){} }
+  simStage = "idle";
+  $("#speakDetail").classList.add("hidden");
+  $("#speakHome").classList.remove("hidden");
+}
+function addMsg(who, text, alsoSpeak=false){
+  const box = $("#chatBox");
+  box.insertAdjacentHTML("beforeend",
+    `<div class="msg ${who}"><div class="who">${who==="ai"?"Examiner Amy":"你"}</div>${text}</div>`);
+  box.scrollTop = box.scrollHeight;
+  if(alsoSpeak) speak(text, {rate:0.95});
+}
+function sendUser(text){
+  text = text.trim(); if(!text) return;
+  addMsg("me", text);
+  $("#chatInput").value = "";
+  setTimeout(()=>{
+    if(qPtr < partnerQs.length-1){
+      qPtr++;
+      addMsg("ai", ackPool[Math.floor(Math.random()*ackPool.length)]);
+      setTimeout(()=>addMsg("ai", partnerQs[qPtr], true), 1600);
+    } else {
+      addMsg("ai","Excellent work — that's the end of this topic. Try another one, or review the vocabulary on the left!");
+      addPracticeTip();
+    }
+  }, 600);
+}
+function addPracticeTip(){
+  const box=$("#chatBox");
+  box.insertAdjacentHTML("beforeend",
+    `<div class="msg ai"><div class="who">练习小结</div>回顾一下：本轮你共回答 ${qPtr+1} 个问题。建议把答不上来的问题重新开口说一遍，再对照参考表达润色自己的答案。</div>`);
+  box.scrollTop = box.scrollHeight;
+}
+$("#btnSend").addEventListener("click",()=>sendUser($("#chatInput").value));
+$("#chatInput").addEventListener("keydown",e=>{ if(e.key==="Enter") sendUser(e.target.value); });
+
+/* 语音识别 */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null, recOn = false;
+if(SR){
+  rec = new SR(); rec.lang="en-GB"; rec.interimResults=false; rec.continuous=false;
+  rec.onresult = e => { const t = e.results[0][0].transcript; $("#chatInput").value = t; sendUser(t); };
+  rec.onend = ()=>{ recOn=false; $("#btnMic").classList.remove("rec"); };
+  rec.onerror = ()=>{ recOn=false; $("#btnMic").classList.remove("rec"); $("#recHint").textContent="语音识别未捕获内容，可改用打字。"; };
+  $("#recHint").textContent = "点击麦克风后开始说英语，说完自动发送。";
+}
+$("#btnMic").addEventListener("click",()=>{
+  if(!rec){ $("#recHint").textContent="当前浏览器不支持语音识别，请使用 Chrome / Edge。"; return; }
+  if(recOn){ rec.stop(); return; }
+  rec.start(); recOn=true; $("#btnMic").classList.add("rec");
+});
+
+/* ================= Part 2 全真模拟 v1.1 ================= */
+const FILLERS = ["um","uh","erm","hmm","well","like","actually","basically","literally"];
+const FILLER_PHRASES = ["you know","i mean","sort of","kind of"];
+let simStage = "idle", prepInt = null, talkInt = null, talkLeft = 120;
+let simRec = null, simChunks = [], simStream = null, simSR = null, simTranscript = "", simTalkStart = 0;
+let lastAudioId = null, lastAudioURL = null, lastSimMeta = null;
+const hasMR = typeof MediaRecorder !== "undefined" && !!navigator.mediaDevices?.getUserMedia;
+
+/* --- IndexedDB（录音存档） --- */
+function idbOpen(){
+  return new Promise((res,rej)=>{
+    const r = indexedDB.open("ielts-mate",1);
+    r.onupgradeneeded = ()=> r.result.createObjectStore("recordings");
+    r.onsuccess = ()=> res(r.result);
+    r.onerror = ()=> rej(r.error);
+  });
+}
+async function idbPut(id, blob){
+  const db = await idbOpen();
+  return new Promise((res,rej)=>{
+    const tx = db.transaction("recordings","readwrite");
+    tx.objectStore("recordings").put(blob,id);
+    tx.oncomplete = res; tx.onerror = ()=>rej(tx.error);
+  });
+}
+async function idbGet(id){
+  const db = await idbOpen();
+  return new Promise((res,rej)=>{
+    const rq = db.transaction("recordings").objectStore("recordings").get(id);
+    rq.onsuccess = ()=> res(rq.result); rq.onerror = ()=>rej(rq.error);
+  });
+}
+
+/* --- 自评历史（localStorage） --- */
+function loadAssess(){ try{ return JSON.parse(localStorage.getItem("im_sassess")||"[]"); }catch(e){ return []; } }
+function renderHist(){
+  const list = loadAssess();
+  const el = $("#assessHist");
+  if(!list.length){ el.innerHTML = `<p class="sim-stage">还没有记录，完成一次模拟并保存后出现在这里。</p>`; return; }
+  el.innerHTML = list.slice(0,5).map(it=>{
+    const avg = ((it.scores.FC+it.scores.LR+it.scores.GRA+it.scores.PR)/4).toFixed(1);
+    return `<div class="hist-item">
+      <span>${it.date}</span><span style="flex:1;color:var(--muted)">${it.topic}</span>
+      <span class="sc">均分 ${avg}</span>
+      ${it.audioId ? `<button class="btn" style="padding:3px 12px;font-size:12px" onclick="playHist('${it.audioId}')">回放</button>` : ""}
+    </div>`;
+  }).join("");
+}
+async function playHist(id){
+  const blob = await idbGet(id);
+  if(!blob){ $("#fluTip").textContent = "该录音已不存在（可能清除了浏览器数据）。"; return; }
+  if(lastAudioURL) URL.revokeObjectURL(lastAudioURL);
+  lastAudioURL = URL.createObjectURL(blob);
+  const a = $("#simAudio"); a.src = lastAudioURL; a.play();
+}
+
+/* --- 流程控制 --- */
+function resetSim(){
+  clearInterval(prepInt); clearInterval(talkInt);
+  simStage = "idle";
+  ["simPrep","simTalk","simResult"].forEach(id=>$("#"+id).classList.add("hidden"));
+  $("#simStart").classList.remove("hidden");
+  $("#prepTimer").textContent = "01:00";
+  $("#talkTimer").textContent = "02:00";
+  $("#talkTimer").classList.remove("warn");
+  $("#simNotes").value = "";
+  $("#assessSaved").textContent = "";
+}
+function showSim(on){ $("#simWrap").style.display = on ? "block" : "none"; }
+
+$("#btnSimStart").addEventListener("click",()=>{
+  simStage = "prep";
+  $("#simStart").classList.add("hidden");
+  $("#simPrep").classList.remove("hidden");
+  let left = 60;
+  $("#prepTimer").textContent = "01:00";
+  prepInt = setInterval(()=>{
+    left--;
+    $("#prepTimer").textContent = `00:${String(left).padStart(2,"0")}`;
+    if(left<=0) startTalk();
+  },1000);
+});
+$("#btnStartTalk").addEventListener("click",startTalk);
+
+function startTalk(){
+  if(simStage!=="prep") return;
+  clearInterval(prepInt);
+  simStage = "talk";
+  $("#simPrep").classList.add("hidden");
+  $("#simTalk").classList.remove("hidden");
+  talkLeft = 120; simTranscript = ""; simChunks = [];
+  simTalkStart = Date.now();
+  updateTalkTimer();
+
+  /* 录音 */
+  if(hasMR){
+    navigator.mediaDevices.getUserMedia({audio:true}).then(stream=>{
+      simStream = stream;
+      simRec = new MediaRecorder(stream);
+      simRec.ondataavailable = e => { if(e.data.size) simChunks.push(e.data); };
+      simRec.onstop = onRecordDone;
+      simRec.start();
+    }).catch(()=>{
+      $("#talkHint").textContent = "未获得麦克风权限，本次将没有录音，仍可正常计时。";
+    });
+  } else {
+    $("#talkHint").textContent = "当前浏览器不支持录音（MediaRecorder），仍可计时与语音识别。";
+  }
+
+  /* 连续语音识别（用于流利度统计） */
+  if(SR){
+    simSR = new SR(); simSR.lang = "en-GB"; simSR.continuous = true; simSR.interimResults = false;
+    simSR.onresult = e => { for(const r of e.results) if(r.isFinal) simTranscript += " " + r[0].transcript; };
+    simSR.onerror = ()=>{};
+    try{ simSR.start(); }catch(e){}
+  } else {
+    $("#talkHint").textContent = "当前浏览器不支持语音识别，流利度将缺少词数/语速统计。";
+  }
+
+  talkInt = setInterval(()=>{
+    talkLeft--; updateTalkTimer();
+    if(talkLeft<=0) endTalk(true);
+  },1000);
+}
+function updateTalkTimer(){
+  const m = String(Math.floor(talkLeft/60)).padStart(2,"0"), s = String(talkLeft%60).padStart(2,"0");
+  const el = $("#talkTimer");
+  el.textContent = `${m}:${s}`;
+  el.classList.toggle("warn", talkLeft < 30);
+}
+$("#btnStopTalk").addEventListener("click",()=>endTalk(false));
+
+function endTalk(auto){
+  if(simStage!=="talk") return;
+  clearInterval(talkInt);
+  simStage = "result";
+  $("#simTalk").classList.add("hidden");
+  const durSec = Math.max(1, Math.round((Date.now()-simTalkStart)/1000));
+  if(simSR){ try{ simSR.stop(); }catch(e){} simSR = null; }
+  if(simRec && simRec.state !== "inactive"){ simRec.stop(); }
+  else if(!simChunks.length){ onRecordDone(null, durSec); }
+  $("#talkHint").textContent = auto ? "时间到，已自动结束。" : "已手动结束。";
+  window._simDur = durSec;
+}
+function onRecordDone(_e, forcedDur){
+  const durSec = forcedDur || window._simDur || Math.max(1, Math.round((Date.now()-simTalkStart)/1000));
+  const blob = simChunks.length ? new Blob(simChunks, {type: simRec?.mimeType || "audio/webm"}) : null;
+  simChunks = [];
+  if(simStream){ simStream.getTracks().forEach(t=>t.stop()); simStream = null; }
+
+  $("#simResult").classList.remove("hidden");
+  lastAudioId = null;
+  if(blob){
+    lastAudioId = (curTopic? curTopic.id : "t") + "-" + Date.now();
+    idbPut(lastAudioId, blob).catch(()=>{ lastAudioId = null; });
+    if(lastAudioURL) URL.revokeObjectURL(lastAudioURL);
+    lastAudioURL = URL.createObjectURL(blob);
+    $("#simAudio").src = lastAudioURL;
+  } else {
+    $("#simAudio").removeAttribute("src");
+  }
+
+  renderFluency(durSec, simTranscript, !!blob, curTopic ? curTopic.title : "");
+  renderHist();
+  window.scrollTo({top: $("#simResult").offsetTop + 200, behavior:"smooth"});
+}
+
+function renderFluency(durSec, transcript, hasAudio, topic){
+  const words = transcript.trim() ? transcript.trim().split(/\s+/).filter(w=>/[a-zA-Z]/.test(w)) : [];
+  const wpm = words.length ? Math.round(words.length / (durSec/60)) : 0;
+  const low = transcript.toLowerCase();
+  let fill = 0;
+  FILLER_PHRASES.forEach(p=>{ fill += (low.match(new RegExp("\\b"+p.replace(/ /g,"\\s+")+"\\b","g"))||[]).length; });
+  const tokens = low.replace(/[^a-z'\s]/g," ").split(/\s+/).filter(Boolean);
+  FILLERS.forEach(f=>{ fill += tokens.filter(t=>t===f).length; });
+
+  $("#fluGrid").innerHTML = `
+    <div class="f"><div class="n">${Math.floor(durSec/60)}:${String(durSec%60).padStart(2,"0")}</div><div class="l">陈述时长</div></div>
+    <div class="f"><div class="n">${words.length||"—"}</div><div class="l">识别词数</div></div>
+    <div class="f"><div class="n">${wpm||"—"}</div><div class="l">语速（词/分）</div></div>
+    <div class="f"><div class="n">${words.length?fill:"—"}</div><div class="l">填充词次数</div></div>`;
+
+  let tips = [];
+  if(durSec < 90 && simStage==="result") tips.push("Part 2 建议讲满 2 分钟，本次偏短，可多准备 1–2 个细节点（举例/对比/个人感受）。");
+  if(wpm && wpm < 70) tips.push("语速偏慢，可能停顿较多；用连接词（well, actually, to be honest）过渡会更自然。");
+  if(wpm && wpm > 170) tips.push("语速偏快，考官可能跟不上，适当放慢、注意断句。");
+  if(words.length && fill/Math.max(1,words.length) > 0.08) tips.push("填充词比例偏高（>"+Math.round(fill/words.length*100)+"%），有意识地把 um/like 换成短暂停顿。");
+  if(!hasAudio) tips.push("本次没有录音：允许麦克风权限后可回放自听。");
+  if(!words.length) tips.push("未捕获语音识别文本：如需流利度统计，请在 Chrome/Edge 中允许麦克风。");
+  $("#fluTip").textContent = tips.length ? "💡 " + tips.join(" ") : "各项数据良好，保持节奏！";
+
+  lastSimMeta = { durSec, words: words.length, wpm, fill, topic };
+}
+
+/* 四维自评 */
+[["slFC","vFC"],["slLR","vLR"],["slGRA","vGRA"],["slPR","vPR"]].forEach(([s,v])=>{
+  $("#"+s).addEventListener("input",()=>{ $("#"+v).textContent = $("#"+s).value; });
+});
+$("#btnSaveAssess").addEventListener("click",()=>{
+  const scores = { FC:+$("#slFC").value, LR:+$("#slLR").value, GRA:+$("#slGRA").value, PR:+$("#slPR").value };
+  const list = loadAssess();
+  list.unshift({
+    date: new Date().toLocaleString("zh-CN",{month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"}),
+    topic: curTopic ? curTopic.title : "未命名话题",
+    scores, ...lastSimMeta, audioId: lastAudioId
+  });
+  localStorage.setItem("im_sassess", JSON.stringify(list.slice(0,50)));
+  const avg = ((scores.FC+scores.LR+scores.GRA+scores.PR)/4).toFixed(1);
+  $("#assessSaved").textContent = `已保存（本次自评均分 ${avg}）`;
+  $("#btnSaveAssess").disabled = true;
+  renderHist();
+  store.add();
+});
+
+/* ================= 阅读 ================= */
+$("#statRead").textContent = READ.length + " 篇";
+let curRead = null, readTimer = null, readLeft = 20*60;
+
+function renderReadList(){
+  $("#readItems").innerHTML = READ.map(m=>`
+    <div class="list-item">
+      <div class="info">
+        <h3>${m.title}</h3>
+        <div><span class="badge">${m.level}</span><span class="badge blue">${m.words}</span><span class="badge amber">限时 20 分钟</span></div>
+      </div>
+      <button class="btn primary" onclick="openRead('${m.id}')">开始作答</button>
+    </div>`).join("");
+}
+function openRead(id){
+  curRead = READ.find(m=>m.id===id); readLeft = 20*60;
+  $("#readList").classList.add("hidden");
+  $("#readDo").classList.remove("hidden");
+  $("#readQTitle").textContent = curRead.title + " · Questions";
+  $("#passagePanel").innerHTML = `<h3>${curRead.title}</h3>` +
+    curRead.paras.map(p=>`<p><span class="para-label">${p[0]}</span>${p[1]}</p>`).join("");
+  renderReadQuiz();
+  startTimer();
+  window.scrollTo(0,0);
+}
+function readBack(){
+  clearInterval(readTimer);
+  $("#readDo").classList.add("hidden");
+  $("#readList").classList.remove("hidden");
+}
+function startTimer(){
+  clearInterval(readTimer);
+  updateTimer();
+  readTimer = setInterval(()=>{
+    readLeft--; updateTimer();
+    if(readLeft<=0){ clearInterval(readTimer); submitRead(); }
+  },1000);
+}
+function updateTimer(){
+  const m = String(Math.floor(readLeft/60)).padStart(2,"0"), s = String(readLeft%60).padStart(2,"0");
+  const el = $("#readTimer");
+  el.textContent = `⏱ ${m}:${s}`;
+  el.classList.toggle("warn", readLeft < 120);
+}
+function renderReadQuiz(){
+  let qi = 0;
+  const html = curRead.quiz.map(sec=>{
+    const head = sec.title ? `<p class="q" style="color:var(--muted)">${sec.title}</p>` : "";
+    const body = sec.qs.map((q,i)=>{
+      const n = qi+i;
+      const opts = q.opts ? q.opts.map((o,oi)=>`<div class="opt" data-oi="${oi}" onclick="pickOpt(this)"><span class="letter">${o.length>60?"":"ABCD"[oi]+". "}</span> ${o}</div>`).join("")
+        : `<div class="tf-row">${["TRUE","FALSE","NOT GIVEN"].map((t,oi)=>`<div class="opt" data-oi="${oi}" onclick="pickOpt(this)">${t}</div>`).join("")}</div>`;
+      return `<div class="q-item" data-qi="${n}"><p class="q">${n+1}. ${q.q}</p>${opts}<div class="explain">解析：${q.ex}</div></div>`;
+    }).join("");
+    qi += sec.qs.length;
+    return head + body;
+  }).join("");
+  $("#readQuiz").innerHTML = html;
+  const banner = $("#readResult"); if(banner) banner.remove();
+}
+$("#btnSubmitRead").addEventListener("click", submitRead);
+function submitRead(){
+  clearInterval(readTimer);
+  let right = 0, total = 0;
+  curRead.quiz.forEach(sec=>sec.qs.forEach(q=>total++));
+  $$("#readQuiz .q-item").forEach(item=>{
+    const flat = curRead.quiz.flatMap(s=>s.qs);
+    const q = flat[+item.dataset.qi];
+    const ans = q.opts ? q.a : ["TRUE","FALSE","NOT GIVEN"].indexOf(q.a);
+    const sel = item.querySelector(".opt.sel");
+    item.querySelectorAll(".opt").forEach(o=>{
+      o.onclick = null;
+      if(+o.dataset.oi===ans) o.classList.add("right");
+    });
+    if(sel && +sel.dataset.oi===ans) right++;
+    item.querySelector(".explain").style.display="block";
+  });
+  const pct = right/total;
+  const cls = pct>=0.75?"good":(pct>=0.5?"mid":"bad");
+  $("#btnSubmitRead").insertAdjacentHTML("afterend",
+    `<div class="result-banner ${cls}" id="readResult">得分：${right} / ${total}（${Math.round(pct*100)}%）· ${pct>=0.75?"Band 7+ 水平，继续保持！":"逐题解析已展开，错题建议回原文定位 🔍"}</div>`);
+  $("#btnSubmitRead").disabled = true;
+  store.add();
+}
+
+/* ================= 初始化 ================= */
+renderListenList(); renderChips(); renderReadList();
+</script>
+</body>
+</html>
