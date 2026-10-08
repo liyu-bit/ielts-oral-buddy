@@ -168,6 +168,25 @@
   .hist-item .sc{color:var(--teal);font-weight:600}
 
   .hidden{display:none!important}
+  /* ===== v1.2 题库与抽题 ===== */
+  .filter-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;text-align:left}
+  .filter-label{font-size:13px;color:var(--muted);width:44px;flex-shrink:0;padding-top:4px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;flex:1}
+  .fchip{font-size:13px;padding:4px 12px;border-radius:999px;border:1px solid var(--teal-border);background:var(--card);color:var(--muted);cursor:pointer}
+  .fchip:hover{border-color:var(--teal)}
+  .fchip.on{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:500}
+  #libSearch{width:100%;border:1px solid var(--teal-border);border-radius:9px;padding:9px 14px;font-size:14px;outline:none;margin-top:6px}
+  #libSearch:focus{border-color:var(--teal)}
+  .lib-group{font-size:13px;color:var(--muted);margin:14px 0 6px;font-weight:500}
+  .lib-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--teal-border);border-radius:9px;margin-bottom:7px;cursor:pointer;transition:all .12s}
+  .lib-item:hover{background:var(--teal-light);border-color:var(--teal)}
+  .lib-item .t{font-size:14px;font-weight:500}
+  .lib-item .m{font-size:12px;color:var(--muted);margin-top:2px}
+  .drawn-card{border:1px dashed var(--teal);border-radius:10px;padding:16px;background:var(--teal-light);text-align:left}
+  .drawn-q{font-size:15px;font-weight:500;margin-top:6px;color:var(--ink)}
+  .qlist-item{padding:9px 12px;border-radius:8px;margin-bottom:6px;font-size:14.5px;background:var(--bg)}
+  .qlist-item.hot{background:var(--teal-light);border-left:3px solid var(--teal);font-weight:500}
+  .cue-card.no-label::before{display:none}
   .mt8{margin-top:8px}.mt16{margin-top:16px}.mb16{margin-bottom:16px}
 </style>
 </head>
@@ -260,24 +279,41 @@
   <section class="page" id="page-speaking">
     <div id="speakHome">
       <h1>🎤 口语板块</h1>
-      <p class="sub">随机抽题 → 看题卡与词汇 → 与 AI 搭子开口模拟。支持语音输入（需 Chrome/Edge），也可打字作答。</p>
+      <p class="sub">题库：<span id="libVersion">—</span> · 覆盖 29 个话题 / 63 道 Part 1 问题 / 14 套题卡 / 42 道 Part 3 追问</p>
 
-      <div class="card" style="text-align:center;padding:34px">
-        <h2 style="margin-bottom:4px">今日话题抽签</h2>
-        <p style="font-size:14px;color:var(--muted);margin-bottom:16px">像考官翻题库一样随机抽一个话题，练到哪算哪</p>
-        <button class="btn primary big" id="btnDraw">🎲 随机抽取话题</button>
+      <div class="card" style="text-align:center;padding:30px 22px">
+        <h2 style="margin-bottom:4px">🎲 随机抽题</h2>
+        <p style="font-size:14px;color:var(--muted);margin-bottom:16px">像考官翻题库一样随机抽题，可按题型、类别、难度限定范围</p>
+        <div class="draw-filters" id="drawFilters">
+          <div class="filter-row"><span class="filter-label">题型</span><div class="chips" id="fPart">
+            <span class="fchip on" data-v="all">全部</span>
+            <span class="fchip" data-v="1">Part 1 · 问答</span>
+            <span class="fchip" data-v="2">Part 2 · 陈述</span>
+          </div></div>
+          <div class="filter-row"><span class="filter-label">类别</span><div class="chips" id="fCat">
+            <span class="fchip on" data-v="all">全部类别</span>
+          </div></div>
+          <div class="filter-row"><span class="filter-label">难度</span><div class="chips" id="fLevel">
+            <span class="fchip on" data-v="all">不限</span>
+            <span class="fchip" data-v="基础">基础</span>
+            <span class="fchip" data-v="进阶">进阶</span>
+          </div></div>
+        </div>
+        <div style="margin-top:14px">
+          <button class="btn primary big" id="btnDraw">🎲 抽一个</button>
+          <button class="btn" id="btnDrawAgain" style="display:none">换一个</button>
+        </div>
         <div id="drawResult" class="mt16" style="display:none">
-          <span class="badge amber" id="drawPart"></span>
-          <strong id="drawTitle" style="font-size:17px"></strong>
+          <div class="drawn-card" id="drawnCard"></div>
           <div class="mt16"><button class="btn primary" id="btnGoTopic">开始练习这个话题 →</button></div>
         </div>
       </div>
 
-      <div class="part-tabs">
-        <button class="part-tab on" data-part="p1">Part 1 · 日常问答</button>
-        <button class="part-tab" data-part="p2">Part 2 · 话题陈述</button>
+      <div class="card">
+        <h2>题库浏览 <span class="badge blue" id="libStat">—</span></h2>
+        <input id="libSearch" placeholder="搜索关键词（中/英都能搜，如 singing / 音乐 / website）…">
+        <div id="topicList" style="margin-top:12px"></div>
       </div>
-      <div class="card"><div id="topicChips"></div></div>
     </div>
 
     <div id="speakDetail" class="hidden">
@@ -384,6 +420,7 @@
 
 <footer>IELTS Mate · 个人学习项目 · 听力语音由浏览器语音合成引擎生成，仅作学习用途</footer>
 
+<script src="topics.js"></script>
 <script>
 /* ================= 听力数据 ================= */
 const LISTEN = [
@@ -501,101 +538,7 @@ const LISTEN = [
 }
 ];
 
-/* ================= 口语数据 ================= */
-const SPEAK = {
-p1:[
-  { id:"s1", title:"Hometown 家乡",
-    cue:"Let's talk about where you live.",
-    bullets:["Where is your hometown?","What do you like most about it?","Has it changed much in recent years?"],
-    vocab:[["metropolis","大都市"],["coastal city","沿海城市"],["laid-back","悠闲的"],["infrastructure","基础设施"],["urbanisation","城市化"],["real estate","房地产"],["convenient transport","便利的交通"],["sense of community","社区归属感"],["night market","夜市"],["face-lift","（城市）翻新改造"]],
-    exprs:[
-      {en:"My hometown is a mid-sized city known for its tea plantations.", zh:"我的家乡是一座以茶园闻名的中型城市。"},
-      {en:"What I love most about it is the laid-back pace of life.", zh:"我最喜欢的是那里悠闲的生活节奏。"},
-      {en:"It has undergone a dramatic transformation over the past decade.", zh:"过去十年它经历了巨大的变化。"},
-      {en:"The local government has invested heavily in infrastructure.", zh:"当地政府在基础设施上投入巨大。"},
-      {en:"Whenever I go back, a wave of nostalgia hits me.", zh:"每次回去， nostalgia 都会涌上心头。"}],
-    qs:["To start with, could you tell me where your hometown is?","What do you like most about living there?","Has your hometown changed much since you were a child?","Would you like to live there in the future? Why or why not?"] },
-  { id:"s2", title:"Free Time & Hobbies 业余爱好",
-    cue:"Let's talk about what you do in your free time.",
-    bullets:["What do you do in your free time?","Did you have the same hobbies as a child?","Do you prefer doing hobbies alone or with friends?"],
-    vocab:[["recreational activity","娱乐活动"],["unwind","放松"],["painting","绘画"],["hiking","徒步"],["workout","健身"],["addicted to","沉迷于"],["take up a hobby","培养爱好"],["kill time","消磨时间"],["team spirit","团队精神"],["me time","专属自己的时间"]],
-    exprs:[
-      {en:"I usually unwind by playing badminton with my colleagues.", zh:"我通常和同事打羽毛球放松。"},
-      {en:"Painting helps me take my mind off work.", zh:"画画能让我暂时忘掉工作。"},
-      {en:"I've recently taken up photography as a hobby.", zh:"我最近开始培养摄影这个爱好。"},
-      {en:"Team sports taught me the value of cooperation.", zh:"团队运动让我学会合作的价值。"},
-      {en:"Weekends are my precious me time.", zh:"周末是我宝贵的个人时间。"}],
-    qs:["What do you usually do in your free time?","Do you have any hobbies you've kept since childhood?","Do you prefer relaxing alone or with friends?","Is there a new hobby you'd like to try?"] },
-  { id:"s3", title:"Work or Study 工作或学习",
-    cue:"Let's talk about your work or studies.",
-    bullets:["Do you work or are you a student?","What do you find most challenging?","What are your plans for the future?"],
-    vocab:[["curriculum","课程体系"],["deadline","截止日期"],["workload","工作量"],["burnout","职业倦怠"],["major in","主修"],[" internship","实习"],["career path","职业道路"],["self-discipline","自律"],["extracurricular","课外的"],["long-term goal","长期目标"]],
-    exprs:[
-      {en:"I'm majoring in computer science at university.", zh:"我在大学主修计算机科学。"},
-      {en:"The toughest part is juggling multiple deadlines.", zh:"最难的是同时应付多个截止日期。"},
-      {en:"I'm planning to pursue a master's degree abroad.", zh:"我打算去国外读硕士。"},
-      {en:"Good time management keeps me from burning out.", zh:"好的时间管理让我避免倦怠。"},
-      {en:"My long-term goal is to start my own business.", zh:"我的长期目标是创业。"}],
-    qs:["Are you currently working or studying?","What subject are you studying, and why did you choose it?","What do you find most difficult about it?","What would you like to do after you graduate?"] },
-  { id:"s4", title:"Food & Cooking 食物与烹饪",
-    cue:"Let's talk about food and cooking.",
-    bullets:["Do you enjoy cooking?","What is a popular dish in your country?","Have your eating habits changed recently?"],
-    vocab:[["cuisine","菜系"],["ingredients","食材"],["simmer","小火慢炖"],["nutritious","有营养的"],["takeaway","外卖"],["vegetarian","素食者"],["home-cooked meal","家常菜"],["flavour","味道"],["street food","街头小吃"],["balanced diet","均衡饮食"]],
-    exprs:[
-      {en:"Cooking is a great way to de-stress after a long day.", zh:"烹饪是漫长一天后解压的好方式。"},
-      {en:"Hotpot is arguably the most popular dish in my country.", zh:"火锅可以说是我国最受欢迎的菜。"},
-      {en:"I've been trying to cut down on takeaway food.", zh:"我一直在努力少吃外卖。"},
-      {en:"My grandmother taught me how to simmer soup slowly.", zh:"奶奶教我小火慢炖汤。"},
-      {en:"A balanced diet matters more than fancy ingredients.", zh:"均衡饮食比昂贵的食材更重要。"}],
-    qs:["Do you like cooking, or do you prefer eating out?","What's a famous dish from your region?","Have your eating habits changed over the years?","Do you think young people eat more healthily than before?"] }
-],
-p2:[
-  { id:"s5", title:"Describe a person who has inspired you",
-    cue:"Describe a person who has inspired you.",
-    bullets:["who this person is","how you know this person","what this person has done","and explain why this person inspired you"],
-    vocab:[["role model","榜样"],["perseverance","毅力"],["selfless","无私的"],["determination","决心"],["compassion","同情心"],["achieve against all odds","逆境成功"],["look up to","敬仰"],["make a difference","带来改变"],["humble","谦逊的"],["dedication","奉献"]],
-    exprs:[
-      {en:"The person who inspires me most is my high-school physics teacher.", zh:"最激励我的人是我的高中物理老师。"},
-      {en:"Despite coming from a poor family, she never gave up on her dreams.", zh:"尽管出身贫寒，她从未放弃梦想。"},
-      {en:"Her perseverance in the face of failure taught me resilience.", zh:"她面对失败的毅力教会了我坚韧。"},
-      {en:"She always encouraged us to aim high.", zh:"她总是鼓励我们志存高远。"},
-      {en:"Thanks to her, I believe hard work eventually pays off.", zh:"因为她，我相信努力终有回报。"}],
-    qs:["Who would you like to talk about?","How did this person first inspire you?","Can you describe one specific thing they did?","How has this person changed the way you live or study?","Do you think famous people make good role models?"] },
-  { id:"s6", title:"Describe a place you love to visit",
-    cue:"Describe a place you love to visit.",
-    bullets:["where it is","how often you go there","what you do there","and explain why you love visiting it"],
-    vocab:[["scenic spot","景点"],["breathtaking view","令人惊叹的景色"],["tranquil","宁静的"],["getaway","短假出游"],["off the beaten track","人迹罕至"],["local delicacy","当地美食"],["soak up the atmosphere","感受氛围"],["picturesque","如画的"],["tourist trap","宰客景点"],["recharge my batteries","恢复精力"]],
-    exprs:[
-      {en:"My favourite getaway is a small lakeside town two hours from my city.", zh:"我最爱的度假地是离城两小时的一座湖边小镇。"},
-      {en:"The moment I arrive, I feel completely recharged.", zh:"一到那里我就感觉精力完全恢复。"},
-      {en:"The view of the lake at sunset is absolutely breathtaking.", zh:"日落时分的湖景美得令人窒息。"},
-      {en:"I try to escape there at least twice a year.", zh:"我尽量每年去至少两次。"},
-      {en:"It's still off the beaten track, so it's never crowded.", zh:"那里还比较小众，从不拥挤。"}],
-    qs:["Where is this place, and how do you usually get there?","What do you normally do when you're there?","Why does this place mean so much to you?","Has tourism changed the place in recent years?","Do you prefer travelling to famous attractions or quiet places?"] },
-  { id:"s7", title:"Describe an achievement you are proud of",
-    cue:"Describe an achievement you are proud of.",
-    bullets:["what you achieved","when and where it happened","how you achieved it","and explain why you feel proud of it"],
-    vocab:[["milestone","里程碑"],["push my limits","挑战极限"],["give it my best shot","全力以赴"],["breakthrough","突破"],["self-fulfilment","自我实现"],["persevere","坚持不懈"],["out of my comfort zone","走出舒适区"],["pay off","（努力）得到回报"],["confidence boost","信心提升"],["hard-earned","来之不易的"]],
-    exprs:[
-      {en:"The achievement I'm proudest of is finishing my first half-marathon.", zh:"我最骄傲的成就是完成首个半程马拉松。"},
-      {en:"At first, running five kilometres was already a struggle.", zh:"起初，跑五公里都很吃力。"},
-      {en:"I trained for six months, rain or shine.", zh:"我风雨无阻地训练了六个月。"},
-      {en:"Crossing the finish line felt like a real breakthrough.", zh:"冲过终点线的感觉像是真正的突破。"},
-      {en:"It taught me that consistency beats talent.", zh:"它让我明白坚持胜过天赋。"}],
-    qs:["What achievement would you like to share?","Why was it difficult for you at the beginning?","How exactly did you manage to achieve it?","How did other people react to your success?","What is your next big goal?"] },
-  { id:"s8", title:"Describe a useful website or app",
-    cue:"Describe a useful website or app you have used.",
-    bullets:["what it is","how you found it","what you use it for","and explain why you find it useful"],
-    vocab:[["user-friendly","易用的"],["feature-rich","功能丰富的"],["subscription","订阅"],["efficiency","效率"],["update","更新"],["recommendation","推荐"],["notifications","通知"],["interface","界面"],["save time","节省时间"],["go-to tool","首选工具"]],
-    exprs:[
-      {en:"An app I can't live without is a vocabulary-building tool.", zh:"一个我离不开的应用是背单词软件。"},
-      {en:"A friend recommended it to me last year.", zh:"去年一位朋友推荐给我的。"},
-      {en:"Its interface is incredibly user-friendly.", zh:"它的界面非常易用。"},
-      {en:"It sends me daily reminders, so I never skip a session.", zh:"它每天发提醒，我从不间断。"},
-      {en:"It has become my go-to tool for learning English.", zh:"它成了我学英语的首选工具。"}],
-    qs:["What website or app would you like to describe?","How did you first discover it?","What do you mainly use it for?","What makes it better than similar ones?","Do you think people spend too much time on apps?"] }
-]
-};
+/* 口语题库数据已抽离至 topics.js（v1.2 起），便于换题季独立更新 */
 
 /* ================= 阅读数据 ================= */
 const READ = [
@@ -812,40 +755,162 @@ $("#btnSubmitListen").addEventListener("click",function(){
   store.add();
 });
 
-/* ================= 口语 ================= */
-$("#statSpeak").textContent = (SPEAK.p1.length+SPEAK.p2.length) + " 个";
-let curPart = "p1", curTopic = null, partnerQs = [], qPtr = 0;
+/* ================= 口语 v1.2（题库驱动） ================= */
+const LIB = window.IELTS_TOPICS;
+const P1TOPICS = LIB.part1.map(t=>Object.assign({}, t, {part:1}));
+const P2CARDS = LIB.part2.map(c=>Object.assign({}, c, {part:2}));
+const ALLTOPICS = P1TOPICS.concat(P2CARDS);
+const PART3_TOTAL = P2CARDS.reduce((n,c)=>n+(c.part3?c.part3.length:0), 0);
+
+$("#statSpeak").textContent = ALLTOPICS.length + " 个";
+$("#libVersion").textContent = LIB.meta.version;
+$("#libStat").textContent = ALLTOPICS.length + " 个话题 · " + LIB.meta.counts.part1Questions + " 道 Part 1 问题 · " + P2CARDS.length + " 套题卡";
+
+let curTopic = null, partnerQs = [], qPtr = 0, drawn = null;
 const ackPool = ["Good. Tell me more about that.","Interesting! Can you give me an example?","I see. Why do you think that is?","That's a nice point. Anything else you'd like to add?"];
+const filter = {part:"all", cat:"all", level:"all"};
+const recentDraw = [];
 
-function renderChips(){
-  $("#topicChips").innerHTML = SPEAK[curPart].map(t=>`<span class="topic-chip" onclick="openTopic('${t.id}')">${t.title}</span>`).join("");
+/* ---- 筛选器 ---- */
+function bindFilter(sel, key){
+  $$(sel + " .fchip").forEach(c=>c.addEventListener("click",()=>{
+    $$(sel + " .fchip").forEach(x=>x.classList.remove("on"));
+    c.classList.add("on"); filter[key] = c.dataset.v;
+    if(key === "part") renderCatChips();
+  }));
 }
-$$(".part-tab").forEach(b=>b.addEventListener("click",()=>{
-  $$(".part-tab").forEach(x=>x.classList.remove("on"));
-  b.classList.add("on"); curPart = b.dataset.part; renderChips();
-}));
-$("#btnDraw").addEventListener("click",()=>{
-  const pool = [...SPEAK.p1,...SPEAK.p2];
-  curTopic = pool[Math.floor(Math.random()*pool.length)];
-  $("#drawResult").style.display = "block";
-  $("#drawPart").textContent = curPart.startsWith("p1") ? "Part 1" : "Part 2";
-  $("#drawTitle").textContent = " " + curTopic.title;
-});
-$("#btnGoTopic").addEventListener("click",()=>openTopic(curTopic.id));
+function renderCatChips(){
+  const pool = filter.part === "all" ? ALLTOPICS : ALLTOPICS.filter(t=>t.part === +filter.part);
+  const cats = [...new Set(pool.map(t=>t.cat))];
+  if(filter.cat !== "all" && !cats.includes(filter.cat)) filter.cat = "all";
+  const box = $("#fCat");
+  box.innerHTML = `<span class="fchip ${filter.cat==="all"?"on":""}" data-v="all">全部类别</span>` +
+    cats.map(c=>`<span class="fchip ${filter.cat===c?"on":""}" data-v="${c}">${c}</span>`).join("");
+  bindFilter("#fCat", "cat");
+}
+bindFilter("#fPart", "part");
+bindFilter("#fLevel", "level");
+renderCatChips();
 
-function findTopic(id){ return SPEAK.p1.find(t=>t.id===id) || SPEAK.p2.find(t=>t.id===id); }
-function speakExpr(i){ if(curTopic) speak(curTopic.exprs[i].en, {rate:0.9}); }
-function openTopic(id){
-  curTopic = findTopic(id); if(!curTopic) return;
-  partnerQs = curTopic.qs; qPtr = 0;
+/* ---- 候选池 ---- */
+function candidates(){
+  const items = [];
+  ALLTOPICS.forEach(t=>{
+    if(filter.part !== "all" && t.part !== +filter.part) return;
+    if(filter.level !== "all" && t.level !== filter.level) return;
+    if(filter.cat !== "all" && t.cat !== filter.cat) return;
+    if(t.part === 1){
+      t.qs.forEach((q,i)=>items.push({key:t.id+"#"+i, part:1, topic:t, qi:i, text:q}));
+    } else {
+      items.push({key:t.id, part:2, topic:t, text:t.cue});
+    }
+  });
+  return items;
+}
+
+/* ---- 抽题 ---- */
+$("#btnDraw").addEventListener("click", doDraw);
+$("#btnDrawAgain").addEventListener("click", doDraw);
+function doDraw(){
+  const pool = candidates();
+  const box = $("#drawnCard");
+  if(!pool.length){
+    $("#drawResult").style.display = "block";
+    box.innerHTML = `<span style="color:var(--danger);font-size:14px">当前筛选条件下没有题目，请放宽条件（比如把类别或难度改回“全部”）。</span>`;
+    $("#btnDrawAgain").style.display = "none";
+    return;
+  }
+  let pick, guard = 0;
+  do { pick = pool[Math.floor(Math.random()*pool.length)]; guard++; }
+  while(recentDraw.includes(pick.key) && guard < 25 && pool.length > 3);
+  recentDraw.push(pick.key);
+  if(recentDraw.length > 6) recentDraw.shift();
+  drawn = pick;
+
+  $("#drawResult").style.display = "block";
+  $("#btnDrawAgain").style.display = "inline-block";
+  const badge = pick.part === 1
+    ? `<span class="badge blue">Part 1 · 日常问答</span>`
+    : `<span class="badge amber">Part 2 · 话题陈述</span>`;
+  box.innerHTML = `
+    <div>${badge}<span class="badge">${pick.topic.cat}</span><span class="badge gray">${pick.topic.level}</span><span class="badge gray">${pick.topic.scene}</span></div>
+    <div class="drawn-q">${pick.part === 1 ? pick.text : pick.text}</div>
+    <div style="font-size:13px;color:var(--muted);margin-top:8px">
+      ${pick.part === 1
+        ? "话题：" + pick.topic.zh + " / " + pick.topic.en + "（该话题共 " + pick.topic.qs.length + " 问，第 " + (pick.qi+1) + " 问）"
+        : "题卡：" + pick.topic.zh + "（" + pick.topic.bullets.length + " 个要点，建议讲满 2 分钟）"}
+    </div>`;
+  $("#btnGoTopic").textContent = pick.part === 2 ? "开始 Part 2 全真模拟 →" : "开始练习这个话题 →";
+}
+$("#btnGoTopic").addEventListener("click",()=>{ if(drawn) openTopic(drawn.topic.id, drawn.part===1 ? drawn.qi : undefined); });
+
+/* ---- 题库浏览 ---- */
+$("#libSearch").addEventListener("input", renderLib);
+function renderLib(){
+  const kw = ($("#libSearch").value || "").trim().toLowerCase();
+  const hit = t => !kw || [t.zh,t.en,t.cue,(t.qs||[]).join(" "),(t.bullets||[]).join(" "),t.cat,t.level,t.scene]
+    .filter(Boolean).join(" ").toLowerCase().includes(kw);
+  const list = ALLTOPICS.filter(hit);
+  if(!list.length){ $("#topicList").innerHTML = `<p class="sim-stage">没有匹配的话题，换个关键词试试。</p>`; return; }
+  let html = "", lastPart = null;
+  list.forEach(t=>{
+    if(t.part !== lastPart){
+      html += `<div class="lib-group">Part ${t.part} · ${t.part===1 ? "日常问答（每题 2–3 句）" : "话题陈述（1 分钟准备 + 2 分钟陈述）"}</div>`;
+      lastPart = t.part;
+    }
+    const meta = t.part === 1
+      ? `${t.cat} · ${t.level} · ${t.scene} · ${t.qs.length} 问`
+      : `${t.cat} · ${t.level} · ${t.bullets.length} 要点 · ${(t.part3||[]).length} 道追问`;
+    html += `<div class="lib-item" data-id="${t.id}">
+      <div><div class="t">${t.zh} <span style="color:var(--muted);font-weight:400">${t.part===1?t.en:(t.cue||"")}</span></div>
+      <div class="m">${meta}</div></div>
+      <span style="color:var(--teal);font-size:13px">练习 →</span></div>`;
+  });
+  $("#topicList").innerHTML = html;
+  $$("#topicList .lib-item").forEach(el=>el.addEventListener("click",()=>openTopic(el.dataset.id)));
+}
+renderLib();
+
+/* ---- 话题详情 ---- */
+function speakExpr(i){ if(curTopic) speak(curTopic.exprs[i][0], {rate:0.9}); }
+function openTopic(id, qi){
+  curTopic = ALLTOPICS.find(t=>t.id === id); if(!curTopic) return;
+  const isP2 = curTopic.part === 2;
+  curTopic.title = curTopic.zh + " · " + (isP2 ? curTopic.cue : curTopic.en);
+
+  if(isP2){
+    const p3 = (curTopic.part3 || []).map(p=>p[0]);
+    partnerQs = p3.length ? p3 : curTopic.bullets.map(b=>b + "?");
+  } else {
+    partnerQs = (typeof qi === "number")
+      ? [curTopic.qs[qi]].concat(curTopic.qs.filter((_,i)=>i !== qi))
+      : curTopic.qs.slice();
+  }
+  qPtr = 0;
+
   $("#speakHome").classList.add("hidden");
   $("#speakDetail").classList.remove("hidden");
-  $("#sdHead").innerHTML = `<h1>${curTopic.title}</h1><span class="badge">${SPEAK.p1.includes(curTopic)?"Part 1":"Part 2"}</span>`;
-  $("#sdCue").innerHTML = `<p style="font-weight:600;font-size:16px">${curTopic.cue}</p><ul>${curTopic.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>`;
-  $("#sdVocab").innerHTML = curTopic.vocab.map(v=>`<span class="vocab-item">${v[0]}<i>${v[1]}</i></span>`).join("");
-  $("#sdExprs").innerHTML = curTopic.exprs.map((e,i)=>`<div class="expr-li" onclick="speakExpr(${i})">${e.en}<small>${e.zh}</small></div>`).join("");
+  $("#sdHead").innerHTML =
+    `<h1>${curTopic.zh}</h1>
+     <div style="margin-top:4px"><span class="badge ${isP2?"amber":"blue"}">Part ${curTopic.part}</span>
+     <span class="badge">${curTopic.cat}</span><span class="badge gray">${curTopic.level}</span>
+     <span class="badge gray">${curTopic.scene}</span></div>`;
+
+  if(isP2){
+    $("#sdCue").classList.remove("no-label");
+    $("#sdCue").innerHTML = `<p style="font-weight:600;font-size:16px">${curTopic.cue}</p>
+      <ul>${curTopic.bullets.map(b=>`<li>${b}</li>`).join("")}</ul>`;
+  } else {
+    $("#sdCue").classList.add("no-label");
+    $("#sdCue").innerHTML = `<p style="font-weight:600;font-size:15px">${curTopic.en}</p>
+      <p style="font-size:13px;color:var(--muted);margin:2px 0 10px">本话题共 ${curTopic.qs.length} 问，逐题练完再换话题</p>
+      ${curTopic.qs.map((q,i)=>`<div class="qlist-item ${i===qi?"hot":""}">${i+1}. ${q}</div>`).join("")}`;
+  }
+
+  $("#sdVocab").innerHTML = curTopic.vocab.map(v=>`<span class="vocab-item" onclick="speak('${v[0]}',{rate:0.9})">${v[0]}<i>${v[1]}</i></span>`).join("");
+  $("#sdExprs").innerHTML = curTopic.exprs.map((e,i)=>`<div class="expr-li" onclick="speakExpr(${i})">${e[0]}<small>${e[1]}</small></div>`).join("");
   $("#chatBox").innerHTML = "";
-  showSim(SPEAK.p2.includes(curTopic));
+  showSim(isP2);
   resetSim();
   addMsg("ai", partnerQs[0], true);
   window.scrollTo(0,0);
