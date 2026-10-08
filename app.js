@@ -17,6 +17,40 @@
   };
   const mmss = s => String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
 
+  /* 图标：引用 index.html 页首那个内联 SVG 精灵。
+     cls 可传 "ic-ok" / "ic-warn" / "ic-err" / "ic-info" 做语义着色。 */
+  function IC(name, cls) {
+    return '<svg class="ic' + (cls ? " " + cls : "") + '" aria-hidden="true"><use href="#i-' + name + '"/></svg>';
+  }
+  const prefersReduce = () => {
+    try { return typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches; }
+    catch (e) { return false; }
+  };
+
+  /* 逐字打出：让考官的提问像流式输出一样出现（约 0.3–0.6 秒）。
+     用户开启"减少动效"或文本很长时直接整段显示，不拖慢阅读。 */
+  function typeIn(el, text, box) {
+    if (!el) return;
+    if (prefersReduce() || text.length > 260) { el.textContent = text; return; }
+    el.textContent = "";
+    const span = document.createElement("span");
+    const caret = document.createElement("span");
+    caret.className = "caret";
+    el.appendChild(span); el.appendChild(caret);
+    const step = Math.max(4, Math.min(16, Math.round(320 / Math.max(1, text.length))));
+    let i = 0;
+    (function tick() {
+      if (i >= text.length) { if (caret.parentNode) caret.parentNode.removeChild(caret); return; }
+      span.textContent += text.charAt(i++);
+      if (box) box.scrollTop = box.scrollHeight;
+      setTimeout(tick, step);
+    })();
+  }
+  /* 等待指示：三点跳动（比原来那行斜体文字更像"对方在打字"） */
+  function thinkingHTML() {
+    return '<span class="typing" role="status" aria-label="考官正在输入"><i></i><i></i><i></i></span>';
+  }
+
   let toastTimer = null;
   /* type: 省略=成功/中性 · "warn"=需要注意 · "err"=失败（错误停留更久） */
   function toast(msg, type) {
@@ -182,7 +216,7 @@
     if (days > 0) tail = "距下一次换题季约 <b>" + days + "</b> 天，建议优先吃透「当季新题」。";
     else tail = "换题季可能已经开始，记得更新 <b>topics.js</b> 的题库数据。";
     $("#seasonBanner").innerHTML =
-      '<div>📅 <b>题库更新季：' + esc(m.version) + '</b>（' + esc(m.seasonRange) + '）<br>' +
+      '<div>' + IC("calendar") + ' <b>题库更新季：' + esc(m.version) + '</b>（' + esc(m.seasonRange) + '）<br>' +
       "当前收录 <b>" + cnt.totalTopics + "</b> 个话题 / <b>" + cnt.drawablePrompts + "</b> 个可抽题面（Part 1 问题 " +
       cnt.part1Questions + " 道 · Part 2 题卡 " + cnt.part2Cards + " 套 · Part 3 追问 " + cnt.part3Questions + " 道）。" + tail +
       "</div>";
@@ -248,10 +282,10 @@
         model: $("#llmModel").value.trim(), apiKey: $("#llmKey").value.trim()
       });
       const r = await window.IELTS_LLM.testConnection();
-      $("#llmHint").textContent = "✅ 连通成功，模型回复：" + r.slice(0, 40);
+      $("#llmHint").innerHTML = IC('check', 'ic-ok') + " 连通成功，模型回复：" + esc(r.slice(0, 40));
       syncEngineUI();
     } catch (e) {
-      $("#llmHint").textContent = "❌ " + e.message + (e.message === "Failed to fetch" ? "（可能是网络或该服务商未开放浏览器直连）" : "");
+      $("#llmHint").innerHTML = IC('x', 'ic-err') + " " + esc(e.message) + (e.message === "Failed to fetch" ? "（可能是网络或该服务商未开放浏览器直连）" : "");
     }
     $("#btnLlmTest").disabled = false;
   });
@@ -275,7 +309,7 @@
     const en = voices.filter(v => /^en/i.test(v.lang));
     box.innerHTML = en.length
       ? "本机可用英文音色 " + en.length + " 个：" + en.slice(0, 12).map(v => esc(v.name + " (" + v.lang + ")")).join("、") +
-        (missing.length ? "<br>⚠ 本机缺少：" + missing.map(l => ACCENT_LABEL[l]).join("、") + "，会自动退回最接近的英文音色。" : "")
+        (missing.length ? "<br>" + IC('alert') + " 本机缺少：" + missing.map(l => ACCENT_LABEL[l]).join("、") + "，会自动退回最接近的英文音色。" : "")
       : "尚未加载到英文音色，可点“试听”触发加载（部分浏览器需先有用户交互）。";
   }
   bindChips("#accentChips", "accent", () => { renderVoiceSettings(); toast("考官口音：" + ACCENT_LABEL[SET.accent]); });
@@ -309,14 +343,22 @@
     if (!box) return null;
     const el = document.createElement("div");
     el.className = "msg " + who;
-    if (who === "ai") el.innerHTML = '<div class="who">' + esc(SET.examinerName) + "</div>" + esc(text);
+    if (who === "ai") {
+      const w = document.createElement("div");
+      w.className = "who"; w.textContent = SET.examinerName;
+      const body = document.createElement("span");
+      body.className = "body";
+      if (opts.html) body.innerHTML = text; else body.textContent = text;
+      el.appendChild(w); el.appendChild(body);
+      if (opts.type && !opts.html) typeIn(body, text, box);
+    } else if (opts.html) el.innerHTML = text;
     else el.textContent = text;
     box.appendChild(el);
     box.scrollTop = box.scrollHeight;
     if (opts.speak && SET.autoSpeak) speak(text, { rate: SET.rate });
     return el;
   }
-  function addSys(boxSel, text) { addMsg(boxSel, "sys", text); }
+  function addSys(boxSel, text, opts) { return addMsg(boxSel, "sys", text, opts); }
 
   /* 考官开场 */
   function examinerOpen(topic, part, specificQ, boxSel) {
@@ -332,7 +374,7 @@
     }
     CONV.asked.push(q); CONV.lastQ = q;
     CONV.history.push({ role: "assistant", content: q });
-    addMsg(boxSel, "ai", q, { speak: true });
+    addMsg(boxSel, "ai", q, { speak: true, type: true });
     return q;
   }
 
@@ -374,7 +416,7 @@
     if (!res) res = localNext(answer);
 
     if (res.feedback) addMsg(boxSel, "ai", res.feedback);
-    addMsg(boxSel, "ai", res.question, { speak: true });
+    addMsg(boxSel, "ai", res.question, { speak: true, type: true });
     CONV.asked.push(res.question);
     const prevQ = CONV.lastQ;
     CONV.lastQ = res.question;
@@ -386,7 +428,7 @@
 
     if (res.flag === "offtopic") {
       CONV.reaskDone = true;
-      addSys(boxSel, "⚠ 考官判定：上一回答偏离题目");
+      addSys(boxSel, IC('alert', 'ic-warn') + " 考官判定：上一回答偏离题目", { html: true });
     } else {
       CONV.reaskDone = false;
       /* 只有"内容型"问题才作为下一次追问的锚点 */
@@ -403,8 +445,7 @@
     CONV.busy = true;
     addMsg(boxSel, "me", text);
     CONV.history.push({ role: "user", content: text });
-    const tip = addMsg(boxSel, "ai", "…");
-    if (tip) tip.innerHTML = '<span class="think">考官正在思考…</span>';
+    const tip = addMsg(boxSel, "ai", thinkingHTML(), { html: true });
     try {
       await nextTurn(text, boxSel);
     } finally {
@@ -465,6 +506,52 @@
     const mix = { 1: 0, 2: 0 };
     p.forEach(x => mix[x.part]++);
     $("#poolInfo").textContent = "当前范围：" + t.length + " 个话题 / " + p.length + " 个可抽题面（Part 1 " + mix[1] + " · Part 2 " + mix[2] + "）";
+    renderFilterSummary(p.length);
+  }
+
+  /* 筛选栏收起时也要让人知道"当前筛了什么、还剩多少题" */
+  function filterActive() {
+    return ["part", "scene", "season", "cat", "level"].some(k => filter[k] !== "all");
+  }
+  function renderFilterSummary(count) {
+    const seg = [
+      filter.part === "all" ? "全部题型" : "Part " + filter.part,
+      filter.scene === "all" ? "全部场景" : filter.scene,
+      filter.season === "all" ? "全部" : filter.season,
+      filter.cat === "all" ? "全部类别" : filter.cat,
+      filter.level === "all" ? "不限" : filter.level
+    ];
+    const s = $("#filterSummary");
+    if (s) s.textContent = seg.join(" · ");
+    const coll = $("#filterColl");
+    if (coll) coll.dataset.active = filterActive() ? "true" : "false";
+    const badge = $("#poolBadge");
+    if (badge) {
+      const n = count == null ? promptsFor(filter).length : count;
+      badge.textContent = n ? "可抽 " + n + " 题" : "无匹配";
+      badge.className = "badge" + (n ? "" : " danger");
+    }
+  }
+
+  /* ---------- 渐进披露 ----------
+     .coll 容器用 data-collapsed 控制展开态；点击整条 .coll-head 即可切换
+     （内部 button 负责键盘与无障碍，事件冒泡到 head 上统一处理）。 */
+  function setCollapsed(coll, collapsed) {
+    if (!coll) return;
+    coll.dataset.collapsed = collapsed ? "true" : "false";
+    const btn = coll.querySelector(".coll-toggle");
+    if (btn) btn.setAttribute("aria-expanded", String(!collapsed));
+  }
+  function initCollapses() {
+    document.addEventListener("click", e => {
+      const t = e.target;
+      if (!t || typeof t.closest !== "function") return;
+      const head = t.closest(".coll-head");
+      if (!head) return;
+      const coll = head.closest(".coll");
+      if (!coll) return;
+      setCollapsed(coll, coll.dataset.collapsed === "false");
+    });
   }
   bindPartLevel();
 
@@ -529,7 +616,7 @@
 
     /* 词汇：点击朗读，点 + 加入生词本 */
     $("#dVocab").innerHTML = curTopic.vocab.map((v, i) =>
-      '<span class="vocab-item" data-wi="' + i + '"><span class="plus" data-add="' + i + '" title="加入生词本">+</span>' + esc(v[0]) + "<i>" + esc(v[1]) + "</i></span>").join("");
+      '<span class="vocab-item" data-wi="' + i + '"><span class="plus" data-add="' + i + '" title="加入生词本">' + IC("plus") + '</span>' + esc(v[0]) + "<i>" + esc(v[1]) + "</i></span>").join("");
     $$("#dVocab .vocab-item").forEach(el => {
       el.addEventListener("click", e => {
         const i = +el.dataset.wi;
@@ -542,6 +629,10 @@
     $$("#dExprs .expr-li").forEach(el => el.addEventListener("click", () => {
       speak(curTopic.exprs[+el.dataset.ei][0], { rate: 0.9 });
     }));
+    /* 素材卡收起时用一行摘要告知存量，换话题时重新收起 */
+    const mc = $("#materialCount");
+    if (mc) mc.textContent = curTopic.vocab.length + " 词 · " + curTopic.exprs.length + " 表达";
+    setCollapsed($("#materialColl"), true);
 
     /* 清空上一话题状态 */
     $("#chatBox").innerHTML = "";
@@ -602,7 +693,7 @@
   const micMock = { g: null, onFinal: t => { $("#mockInput").value = t; mockSubmit(); }, hint: "#mockRecHint" };
   bindMic("#btnMic", micPractice);
   bindMic("#mockMic", micMock);
-  if (SR) { $("#recHint").textContent = "点击 🎙 说英语，识别后自动发送。"; $("#mockRecHint").textContent = "点击 🎙 说英语，识别后自动发送。"; }
+  if (SR) { $("#recHint").innerHTML = "点击 " + IC("mic") + " 说英语，识别后自动发送。"; $("#mockRecHint").innerHTML = "点击 " + IC("mic") + " 说英语，识别后自动发送。"; }
 
   /* ======================= 录音器（共用） ======================= */
   const hasMR = typeof MediaRecorder !== "undefined" && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
@@ -832,7 +923,7 @@
     if (words.length && fill / words.length > 0.08) tips.push("填充词比例偏高（" + Math.round(fill / words.length * 100) + "%），把 um / like 换成 1 秒停顿。");
     if (!hasAudio) tips.push("本次没有录音：允许麦克风权限后可回放自听。");
     if (!words.length) tips.push("未捕获识别文本：如需流利度统计，请在 Chrome / Edge 中允许麦克风。");
-    $(tipSel).textContent = tips.length ? "💡 " + tips.join(" ") : "各项数据良好，保持节奏！";
+    $(tipSel).innerHTML = tips.length ? IC('bulb', 'ic-info') + " " + esc(tips.join(" ")) : "各项数据良好，保持节奏！";
     return { words: words.length, wpm: wpm, fill: fill };
   }
 
@@ -907,7 +998,7 @@
         (t.band === 6 ? "gray" : t.band === 7 ? "" : "purple") + '">Band ' + t.band + "</span></div>" +
         '<div class="tdesc">' + esc(t.desc) + "</div>" +
         '<div class="ttext">' + E.diffHTML(res.base, t.text) + "</div>" +
-        '<div class="row mt8"><button class="btn sm" data-speak-tier="' + t.band + '">🔊 朗读这一版</button></div>' +
+        '<div class="row mt8"><button class="btn sm" data-speak-tier="' + t.band + '">' + IC("volume") + ' 朗读这一版</button></div>' +
         '<div class="hidden" data-tier-text="' + t.band + '">' + esc(t.text) + "</div>" +
         "</div>";
     });
@@ -925,7 +1016,7 @@
       "对比三档差异，能直观看到「同样的意思，怎么说才更得分」。</p>";
     if (String(engineLabel).indexOf("本地") === 0) {
       html += '<p style="font-size:var(--fs-note);color:var(--amber);margin-top:var(--sp-2)">' +
-        "⚠ 本地引擎只做<b>语法安全</b>的替换与结构增补（不会把动词搭配改坏），所以个别位置读起来仍偏生硬。" +
+        "" + IC('alert') + " 本地引擎只做<b>语法安全</b>的替换与结构增补（不会把动词搭配改坏），所以个别位置读起来仍偏生硬。" +
         "想要真正地道的整句改写，可在「首页 → AI 考官引擎」填入你自己的大模型 API Key。</p>";
     }
     $("#upgradeBody").innerHTML = html;
@@ -943,7 +1034,7 @@
     let ans = lastUserAnswer();
     if (!ans && curTopic.exprs && curTopic.exprs.length) ans = "";
     btn.disabled = true;
-    $("#upgradeBody").innerHTML = '<p class="think">正在生成三档升级…</p>';
+    $("#upgradeBody").innerHTML = '<p class="loader">' + IC("loader") + '正在生成三档升级…</p>';
 
     let res = null, label = "本地升级引擎";
     if (window.IELTS_LLM.isReady()) {
@@ -1076,7 +1167,7 @@
       '<div class="bar-wrap"><div class="bar" style="width:' + Math.round(r.pct * 100) + '%"></div></div>' +
       '<span style="color:var(--muted);min-width:80px;text-align:right">' + r.done + " / " + r.total + "</span></div>").join("");
     if (weakest.length) {
-      gap += '<div class="notice warn mt16" style="margin-bottom:0">⚠ 还没练过的类别：<b>' +
+      gap += '<div class="notice warn mt16" style="margin-bottom:0">' + IC("alert") + ' 还没练过的类别：<b>' +
         weakest.map(w => esc(w.c) + "（" + w.total + " 个话题）").join("、") + "</b>。建议用抽题练习的场景 / 类别筛选专门补一补。</div>";
     }
     $("#weakGap").innerHTML = gap;
@@ -1117,7 +1208,7 @@
     $("#wordbookList").innerHTML = wb.map((w, i) =>
       '<div class="wb-item"><span class="w">' + esc(w.en) + '</span><span class="z">' + esc(w.zh) +
       (w.topic ? " · " + esc(w.topic) : "") + "</span>" +
-      '<button class="btn sm" data-wb-speak="' + i + '">🔊</button>' +
+      '<button class="btn sm" data-wb-speak="' + i + '">' + IC("volume") + '</button>' +
       '<button class="btn sm danger" data-wb-del="' + i + '">删除</button></div>').join("");
     $$("#wordbookList [data-wb-speak]").forEach(b => b.addEventListener("click", () => {
       const w = loadWb()[+b.dataset.wbSpeak]; if (w) speak(w.en, { rate: 0.85 });
@@ -1227,6 +1318,7 @@
 
   /* ======================= 初始化 ======================= */
   function init() {
+    initCollapses();
     renderSeasonBanner();
     renderKpi();
     renderEngineSettings();
@@ -1277,7 +1369,7 @@
       '<hr class="sep">' +
       "<div>" + tagHead(3, [(s.p2.part3 || []).length + " 道追问"]) + "</div>" +
       '<div class="drawn-q" style="font-size:var(--fs-body)">' + esc((s.p2.part3 || []).map(p => p[0])[0] || "") + " …</div>" +
-      '<div class="row mt16"><button class="btn primary big" id="btnMockStart">▶ 开始模考</button></div>' +
+      '<div class="row mt16"><button class="btn primary big" id="btnMockStart">' + IC("play") + ' 开始模考</button></div>' +
       "</div>";
     $("#btnMockStart").addEventListener("click", startMock);
   }
@@ -1404,7 +1496,7 @@
     } else { $("#mockAudio").removeAttribute("src"); mock.audioId = null; }
 
     const s = mock.set;
-    $("#mockReportBody").innerHTML = '<p class="think">正在生成练习报告…</p>';
+    $("#mockReportBody").innerHTML = '<p class="loader">' + IC("loader") + '正在生成练习报告…</p>';
     const payload = {
       part1Topic: s.p1.zh + " / " + s.p1.en,
       part2Card: s.p2.cue,
@@ -1432,9 +1524,9 @@
     $("#mockReportBody").innerHTML =
       '<p style="font-size:var(--fs-lead);margin-bottom:var(--sp-3)">' + esc(rep.overall || "") + "</p>" +
       '<div class="grid grid-3">' +
-      "<div><h3>✅ 优势</h3>" + li(rep.strengths) + "</div>" +
-      "<div><h3>⚠ 短板</h3>" + li(rep.weaknesses) + "</div>" +
-      "<div><h3>💡 建议</h3>" + li(rep.advice) + "</div>" +
+      "<div><h3>" + IC('check', 'ic-ok') + " 优势</h3>" + li(rep.strengths) + "</div>" +
+      "<div><h3>" + IC('alert', 'ic-warn') + " 短板</h3>" + li(rep.weaknesses) + "</div>" +
+      "<div><h3>" + IC('bulb', 'ic-info') + " 建议</h3>" + li(rep.advice) + "</div>" +
       "</div>" +
       '<p style="font-size:var(--fs-note);color:var(--muted);margin-top:var(--sp-3)">报告来源：' + esc(label) + "</p>";
     window.scrollTo(0, 0);

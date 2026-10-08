@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IELTS Oral Buddy · 雅思口语专练</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎤</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%230f766e'/><g fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round'><rect x='12' y='6.5' width='8' height='14' rx='4'/><path d='M8 16a8 8 0 0 0 16 0'/><path d='M16 24v3'/></g></svg>">
 <style>
   :root{
     /* ---- 颜色：1 主色 + 4 语义色 + 中性阶 ---- */
@@ -59,7 +59,7 @@
   .nav{display:flex;align-items:center;gap:var(--sp-2);height:60px;flex-wrap:nowrap;overflow-x:auto}
   .logo{font-weight:700;font-size:var(--fs-lead);color:var(--teal);margin-right:var(--sp-4);display:flex;align-items:center;gap:var(--sp-2);white-space:nowrap}
   .logo .dot{width:10px;height:10px;border-radius:50%;background:var(--teal);display:inline-block}
-  .tab-btn{border:none;background:none;padding:var(--sp-2) var(--sp-3);border-radius:var(--r-sm);font-size:var(--fs-body);color:var(--muted);cursor:pointer;font-weight:500;white-space:nowrap}
+  .tab-btn{display:inline-flex;align-items:center;gap:var(--sp-1);border:none;background:none;padding:var(--sp-2) var(--sp-3);border-radius:var(--r-sm);font-size:var(--fs-body);color:var(--muted);cursor:pointer;font-weight:500;white-space:nowrap}
   .tab-btn:hover{background:var(--teal-light);color:var(--teal)}
   .tab-btn.active{background:var(--teal);color:#fff}
   .nav .score-pill{margin-left:auto;font-size:var(--fs-note);color:var(--muted);background:var(--teal-light);padding:var(--sp-1) var(--sp-3);border-radius:var(--r-full);white-space:nowrap}
@@ -88,8 +88,8 @@
   .stat-card .label{font-size:var(--fs-note);color:var(--muted)}
   .stat-card .num{font-size:var(--fs-display);font-weight:700;color:var(--teal);margin-top:var(--sp-1);line-height:1.2}
 
-  .btn{display:inline-block;border:1px solid var(--line-2);background:var(--card);color:var(--teal);
-    padding:var(--sp-2) var(--sp-4);border-radius:var(--r-sm);font-size:var(--fs-body);cursor:pointer;font-weight:500;font-family:inherit;
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--sp-1);border:1px solid var(--line-2);background:var(--card);color:var(--teal);
+    padding:var(--sp-2) var(--sp-4);border-radius:var(--r-sm);font-size:var(--fs-body);cursor:pointer;font-weight:500;font-family:inherit;line-height:1.5;
     transition:background-color var(--t),border-color var(--t),color var(--t),box-shadow var(--t),transform .1s ease}
   .btn:hover{background:var(--teal-light);border-color:var(--teal)}
   .btn.primary{background:var(--teal);color:#fff;border-color:var(--teal);box-shadow:var(--sh1)}
@@ -119,7 +119,7 @@
   .filter-row{display:flex;align-items:flex-start;gap:var(--sp-2);margin-bottom:var(--sp-3);text-align:left}
   .filter-label{font-size:var(--fs-note);color:var(--muted);width:52px;flex-shrink:0;padding-top:var(--sp-1)}
   .chips{display:flex;flex-wrap:wrap;gap:var(--sp-2);flex:1}
-  .fchip{font-size:var(--fs-body);padding:var(--sp-1) var(--sp-3);border-radius:var(--r-full);border:1px solid var(--line-2);background:var(--card);color:var(--muted);cursor:pointer;user-select:none}
+  .fchip{display:inline-flex;align-items:center;gap:var(--sp-1);font-size:var(--fs-body);padding:var(--sp-1) var(--sp-3);border-radius:var(--r-full);border:1px solid var(--line-2);background:var(--card);color:var(--muted);cursor:pointer;user-select:none}
   .fchip:hover{border-color:var(--teal);color:var(--teal)}
   .fchip.on{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:500}
   /* 核心内容：抽中的题面。虚线框在界面语言里表示"占位待填"，会削弱分量，
@@ -139,7 +139,8 @@
   .vocab-item:hover{background:var(--teal-light);border-color:var(--teal);color:var(--teal)}
   .vocab-item:active{transform:translateY(1px)}
   .vocab-item i{font-style:normal;color:var(--muted);margin-left:var(--sp-1);font-size:var(--fs-note)}
-  .vocab-item .plus{font-size:var(--fs-note);line-height:1;color:var(--teal);border:1px solid var(--line-2);border-radius:50%;width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;background:var(--card)}
+  .vocab-item .plus{color:var(--teal);border:1px solid var(--line-2);border-radius:50%;width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;background:var(--card);flex:none}
+  .vocab-item .plus .ic{width:9px;height:9px;stroke-width:2.6}
   .expr-li{padding:var(--sp-2) 0 var(--sp-2) var(--sp-4);border-left:3px solid var(--line-2);margin-bottom:var(--sp-2);font-size:var(--fs-body);cursor:pointer;transition:background-color var(--t),border-color var(--t)}
   .expr-li:hover{border-left-color:var(--teal);background:var(--teal-light)}
   .expr-li:active{background:var(--teal-light)}
@@ -157,11 +158,21 @@
   .chat-input-row{display:flex;gap:var(--sp-2);margin-top:var(--sp-3)}
   .chat-input-row input{flex:1;min-width:0;border:1px solid var(--line-2);border-radius:var(--r-sm);padding:var(--sp-2) var(--sp-3);font-size:var(--fs-body);outline:none;font-family:inherit;transition:border-color var(--t)}
   .chat-input-row input:focus{border-color:var(--teal)}
-  .mic-btn{width:46px;border:1px solid var(--line-2);background:var(--card);border-radius:var(--r-sm);cursor:pointer;font-size:16px;line-height:1;color:var(--ink)}
+  .mic-btn{width:46px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line-2);background:var(--card);border-radius:var(--r-sm);cursor:pointer;font-size:16px;line-height:1;color:var(--ink)}
   .mic-btn:hover{border-color:var(--teal);background:var(--teal-light)}
   .mic-btn.rec{background:var(--danger-light);border-color:var(--danger);animation:pulse 1s infinite}
   @keyframes pulse{50%{opacity:.6}}
-  .think{font-size:var(--fs-note);color:var(--muted);font-style:italic}
+  /* 考官等待态：三点跳动气泡 + 生成中旋转 loader + 逐字打出的光标 */
+  .typing{display:inline-flex;align-items:center;gap:var(--sp-1);height:1.35em;padding:var(--sp-1) 0}
+  .typing i{width:6px;height:6px;border-radius:50%;background:var(--teal);opacity:.45;animation:tp .9s infinite}
+  .typing i:nth-child(2){animation-delay:.15s}
+  .typing i:nth-child(3){animation-delay:.3s}
+  @keyframes tp{0%,70%,100%{opacity:.45;transform:translateY(0)}35%{opacity:1;transform:translateY(-3px)}}
+  .loader{display:flex;align-items:center;gap:var(--sp-2);font-size:var(--fs-body);color:var(--muted);padding:var(--sp-1) 0}
+  .loader .ic{width:16px;height:16px;color:var(--teal);animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .caret{display:inline-block;width:2px;height:1em;background:var(--teal);margin-left:2px;vertical-align:-.16em;animation:caret 1s steps(1) infinite}
+  @keyframes caret{50%{opacity:0}}
 
   /* ===== 三档升级 ===== */
   .tier{border:1px solid var(--line);border-radius:var(--r-md);padding:var(--sp-3) var(--sp-4);margin-bottom:var(--sp-3);background:var(--card)}
@@ -243,6 +254,36 @@
   .toast.warn{background:#5c3a06;color:#ffeed2}
   .toast.err{background:#7a1414;color:#ffe4e4}
 
+  /* ==================== 图标系统 ====================
+     所有图标来自页首内联 SVG 精灵。默认 1.15em、1.75px 描边、继承文字色，
+     因此在标题、按钮、提示条里都能自动跟随字号与颜色，跨系统完全一致。 */
+  .ic{width:1.15em;height:1.15em;flex:none;display:inline-block;vertical-align:-.16em;
+      fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+  .ic.ic-ok{color:var(--ok)} .ic.ic-err{color:var(--danger)} .ic.ic-warn{color:var(--amber)} .ic.ic-info{color:var(--blue)}
+  /* 标题里的图标：与文字留出间距，并统一取主色 */
+  h1>.ic,h2>.ic,h3>.ic{margin-right:var(--sp-2);vertical-align:-.13em;color:var(--teal)}
+
+  /* ==================== 可折叠区块（渐进披露） ====================
+     用 grid-template-rows:0fr→1fr 实现高度动画，无需测量元素高度；
+     不支持该过渡的浏览器会直接展开/收起（内容不会被吞掉）。 */
+  .coll-head{display:flex;align-items:center;gap:var(--sp-2);cursor:pointer;user-select:none}
+  .coll-toggle{flex:1;min-width:0;display:flex;align-items:center;gap:var(--sp-2);background:none;border:none;padding:0;
+    font:inherit;color:inherit;cursor:pointer;text-align:left}
+  .coll-chev{width:16px;height:16px;color:var(--muted);transition:transform var(--t)}
+  .coll[data-collapsed="false"] .coll-chev{transform:rotate(180deg)}
+  .coll-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows var(--t)}
+  .coll[data-collapsed="false"] .coll-body{grid-template-rows:1fr}
+  .coll-inner{overflow:hidden;min-height:0}
+  /* 筛选栏：收起时也让人看得见"当前筛了什么" */
+  .fsum{font-size:var(--fs-body);color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .coll[data-active="true"] .fsum{color:var(--teal);font-weight:500}
+  .coll-title{font-size:var(--fs-title);font-weight:600;line-height:1.3}
+  .coll-toggle>.ic{color:var(--teal)}
+  /* 导航标签的长/短两套文案：窄屏换成两字，避免 5 个标签横向溢出 */
+  .t-short{display:none}
+  /* 桌面端：对话列跟随滚动，左侧长栏滚动时考官始终在视野内 */
+  @media(min-width:961px) and (min-height:720px){ .layout>.side{position:sticky;top:76px} }
+
   /* ==================== 移动端适配 ==================== */
   html{-webkit-text-size-adjust:100%}
   .btn,.tab-btn,.fchip,.mic-btn{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
@@ -291,6 +332,8 @@
     .wrap{padding:0 var(--sp-3)}
     .nav .score-pill{display:none}
     .tab-btn{padding:var(--sp-2)}
+    .t-long{display:none}
+    .t-short{display:inline}
   }
 
   @media(max-width:400px){
@@ -301,14 +344,49 @@
 </head>
 <body>
 
+<!-- ==================== 图标精灵 ====================
+     全站图标改用内联 SVG（24px 网格 / 1.75px 描边 / currentColor 继承文字色）。
+     原生 emoji 在不同系统上的字体、字重、基线都不同（Windows 会把国旗渲染成 GB/US/AU
+     字母），按钮内文字无法与图标垂直对齐；SVG 则在任何设备上完全一致。 -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<symbol id="i-dice" viewBox="0 0 24 24"><rect x="3.6" y="3.6" width="16.8" height="16.8" rx="4.2"/><circle cx="8.6" cy="8.6" r="1.25" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.25" fill="currentColor" stroke="none"/><circle cx="15.4" cy="15.4" r="1.25" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-home" viewBox="0 0 24 24"><path d="M3.6 10.7 12 3.6l8.4 7.1"/><path d="M5.7 9.5v10.3h12.6V9.5"/><path d="M9.9 19.8v-5.5h4.2v5.5"/></symbol>
+<symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.4"/><circle cx="12" cy="12" r="4.4"/><circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-books" viewBox="0 0 24 24"><path d="M4 5.4h5.4A2.6 2.6 0 0 1 12 8v11.6a2.1 2.1 0 0 0-2.1-2.1H4z"/><path d="M20 5.4h-5.4A2.6 2.6 0 0 0 12 8v11.6a2.1 2.1 0 0 1 2.1-2.1H20z"/></symbol>
+<symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20.2h16"/><path d="M7 20.2v-8.6"/><path d="M12 20.2V4.6"/><path d="M17 20.2v-5.4"/></symbol>
+<symbol id="i-cpu" viewBox="0 0 24 24"><rect x="5.6" y="6.8" width="12.8" height="11.4" rx="2.8"/><path d="M12 3.4v3.4"/><circle cx="12" cy="2.6" r="1.1" fill="currentColor" stroke="none"/><path d="M3.4 10.6v3.4M20.6 10.6v3.4"/><circle cx="9.6" cy="12.5" r=".95" fill="currentColor" stroke="none"/><circle cx="14.4" cy="12.5" r=".95" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-speak" viewBox="0 0 24 24"><path d="M4 9.4h3.2L15.4 5v14L7.2 14.6H4z"/><path d="M18.2 9.2a4.1 4.1 0 0 1 0 5.6"/><path d="M20.6 6.6a7.6 7.6 0 0 1 0 10.8"/></symbol>
+<symbol id="i-sliders" viewBox="0 0 24 24"><path d="M3.6 7.4h9.2M3.6 16.6h3.2M15 16.6h5.4"/><circle cx="15.2" cy="7.4" r="2.3"/><circle cx="9.2" cy="16.6" r="2.3"/></symbol>
+<symbol id="i-filter" viewBox="0 0 24 24"><path d="M3.6 5.6h16.8L14 13v6.4l-4-2.2V13z"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.6" y="10.4" width="14.8" height="9.8" rx="2.6"/><path d="M8.2 10.4V7.9a3.8 3.8 0 0 1 7.6 0v2.5"/></symbol>
+<symbol id="i-timer" viewBox="0 0 24 24"><path d="M9.8 2.6h4.4"/><path d="M12 2.6v3.6"/><circle cx="12" cy="13.8" r="7.6"/><path d="M12 13.8V9.6"/></symbol>
+<symbol id="i-doc" viewBox="0 0 24 24"><path d="M6 3.6h8l4 4.2v12.6H6z"/><path d="M14 3.6v4.2h4"/><path d="M9.4 12.8h5.2M9.4 16.4h5.2"/></symbol>
+<symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="2.6" width="6" height="11" rx="3"/><path d="M5.6 11.4a6.4 6.4 0 0 0 12.8 0"/><path d="M12 17.8v3.6"/></symbol>
+<symbol id="i-volume" viewBox="0 0 24 24"><path d="M4 9.4h3.2L12 5.4v13.2L7.2 14.6H4z"/><path d="M15.4 9.6a4 4 0 0 1 0 4.8"/><path d="M18 7a7.4 7.4 0 0 1 0 10"/></symbol>
+<symbol id="i-stop" viewBox="0 0 24 24"><rect x="6.2" y="6.2" width="11.6" height="11.6" rx="2.6"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24"><path d="M4.4 6.4h15.2"/><path d="M9.4 6.4V4.7a1.1 1.1 0 0 1 1.1-1.1h3a1.1 1.1 0 0 1 1.1 1.1v1.7"/><path d="M6.6 6.4l.9 13.1a1.6 1.6 0 0 0 1.6 1.5h5.8a1.6 1.6 0 0 0 1.6-1.5l.9-13.1"/><path d="M10.6 10.4v6.4M13.4 10.4v6.4"/></symbol>
+<symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4.1 20.9 19.6H3.1z"/><path d="M12 10v4.2"/><circle cx="12" cy="17.2" r=".95" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3.6v10.2"/><path d="M8.2 10l3.8 3.8L15.8 10"/><path d="M4.6 17.4v1.4a2.1 2.1 0 0 0 2.1 2.1h10.6a2.1 2.1 0 0 0 2.1-2.1v-1.4"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><path d="M8.6 5.6 18.8 12 8.6 18.4z" fill="currentColor" stroke="none"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M4.6 12.6l4.8 4.8L19.4 6.8"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M6.2 6.2l11.6 11.6M17.8 6.2 6.2 17.8"/></symbol>
+<symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9.4 17.4h5.2"/><path d="M10.4 20.6h3.2"/><path d="M12 3.2a6.1 6.1 0 0 1 3.6 11v3.2H8.4v-3.2A6.1 6.1 0 0 1 12 3.2z"/></symbol>
+<symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3.6" y="5.4" width="16.8" height="15" rx="2.6"/><path d="M3.6 10h16.8"/><path d="M8 3.4v4M16 3.4v4"/></symbol>
+<symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.4"/><path d="M3.6 12h16.8"/><path d="M12 3.6a13.2 13.2 0 0 1 0 16.8 13.2 13.2 0 0 1 0-16.8z"/></symbol>
+<symbol id="i-chevron" viewBox="0 0 24 24"><path d="M6.4 9.6 12 15.2l5.6-5.6"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5.6v12.8M5.6 12h12.8"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.6"/><path d="M15.6 15.6 20.4 20.4"/></symbol>
+<symbol id="i-loader" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.4" opacity=".22"/><path d="M12 3.6a8.4 8.4 0 0 1 8.4 8.4"/></symbol>
+</defs></svg>
+
 <header>
   <div class="wrap nav">
     <div class="logo"><span class="dot"></span>IELTS Oral Buddy</div>
-    <button class="tab-btn active" data-page="home">首页</button>
-    <button class="tab-btn" data-page="practice">🎲 抽题练习</button>
-    <button class="tab-btn" data-page="mock">🎯 套题模考</button>
-    <button class="tab-btn" data-page="library">📚 题库</button>
-    <button class="tab-btn" data-page="review">📈 复盘</button>
+    <button class="tab-btn active" data-page="home"><svg class="ic" aria-hidden="true"><use href="#i-home"/></svg><span class="t-long">首页</span><span class="t-short">首页</span></button>
+    <button class="tab-btn" data-page="practice"><svg class="ic" aria-hidden="true"><use href="#i-dice"/></svg><span class="t-long">抽题练习</span><span class="t-short">抽题</span></button>
+    <button class="tab-btn" data-page="mock"><svg class="ic" aria-hidden="true"><use href="#i-target"/></svg><span class="t-long">套题模考</span><span class="t-short">套题</span></button>
+    <button class="tab-btn" data-page="library"><svg class="ic" aria-hidden="true"><use href="#i-books"/></svg><span class="t-long">题库</span><span class="t-short">题库</span></button>
+    <button class="tab-btn" data-page="review"><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg><span class="t-long">复盘</span><span class="t-short">复盘</span></button>
     <span class="score-pill" id="statPill">累计练习：0 次</span>
   </div>
 </header>
@@ -331,31 +409,31 @@
 
     <div class="grid grid-3 mb16">
       <div class="card" style="margin-bottom:0">
-        <h2>🎲 抽题练习</h2>
+        <h2><svg class="ic" aria-hidden="true"><use href="#i-dice"/></svg>抽题练习</h2>
         <p style="font-size:var(--fs-body);color:var(--muted)">按题型 / 类别 / 场景 / 季节 / 难度五维筛选随机抽题。抽中 Part 2 自动开始计时。</p>
         <button class="btn primary mt16" data-goto="practice">开始抽题 →</button>
       </div>
       <div class="card" style="margin-bottom:0">
-        <h2>🎯 套题模考</h2>
+        <h2><svg class="ic" aria-hidden="true"><use href="#i-target"/></svg>套题模考</h2>
         <p style="font-size:var(--fs-body);color:var(--muted)">一键生成 Part 1 + Part 2 + Part 3 完整一套，按真实考试顺序与时间推进。</p>
         <button class="btn mt16" data-goto="mock">生成一套题</button>
       </div>
       <div class="card" style="margin-bottom:0">
-        <h2>📈 复盘与生词本</h2>
+        <h2><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg>复盘与生词本</h2>
         <p style="font-size:var(--fs-body);color:var(--muted)">练习历史、每题自评、复练次数、练得最少的话题类型、生词本整本朗读。</p>
         <button class="btn mt16" data-goto="review">打开复盘</button>
       </div>
     </div>
 
     <div class="card">
-      <h2>🤖 AI 考官引擎 <span class="badge" id="engineBadge">本地智能引擎</span></h2>
+      <h2><svg class="ic" aria-hidden="true"><use href="#i-cpu"/></svg>AI 考官引擎 <span class="badge" id="engineBadge">本地智能引擎</span></h2>
       <p class="sub" style="margin-bottom:var(--sp-4)">
         默认使用内置的<b>本地智能考官引擎</b>：完全离线、无需配置，会根据你的回答动态追问、判断跑题、在 Part 3 自动升维。
         想让它更聪明（真正即兴、随机应变），可接入你自己的大模型 API Key —— Key 只保存在你本机浏览器，不会上传到任何服务器。
       </p>
 
       <div class="notice warn" style="margin-bottom:var(--sp-4)">
-        <div>🔐 <b>关于安全</b>：本项目是纯静态网页，没有自己的服务器，所以无法内置密钥。填入的 Key 仅写入本机 localStorage，由你的浏览器直接发往所选服务商；换设备或清除浏览器数据后需重新填写。不填也能完整使用全部功能。</div>
+        <div><svg class="ic" aria-hidden="true"><use href="#i-lock"/></svg><b>关于安全</b>：本项目是纯静态网页，没有自己的服务器，所以无法内置密钥。填入的 Key 仅写入本机 localStorage，由你的浏览器直接发往所选服务商；换设备或清除浏览器数据后需重新填写。不填也能完整使用全部功能。</div>
       </div>
 
       <div class="grid grid-2">
@@ -384,11 +462,11 @@
           <p style="font-size:var(--fs-note);color:var(--muted);margin-top:var(--sp-2)" id="llmHint"></p>
         </div>
         <div>
-          <h3>🗣 考官口音与语速</h3>
+          <h3><svg class="ic" aria-hidden="true"><use href="#i-speak"/></svg>考官口音与语速</h3>
           <div class="filter-row"><span class="filter-label">口音</span><div class="chips" id="accentChips">
-            <span class="fchip on" data-v="en-GB">🇬🇧 英音</span>
-            <span class="fchip" data-v="en-US">🇺🇸 美音</span>
-            <span class="fchip" data-v="en-AU">🇦🇺 澳音</span>
+            <span class="fchip on" data-v="en-GB"><svg class="ic" aria-hidden="true"><use href="#i-globe"/></svg>英音</span>
+            <span class="fchip" data-v="en-US"><svg class="ic" aria-hidden="true"><use href="#i-globe"/></svg>美音</span>
+            <span class="fchip" data-v="en-AU"><svg class="ic" aria-hidden="true"><use href="#i-globe"/></svg>澳音</span>
           </div></div>
           <div class="filter-row"><span class="filter-label">语速</span><div class="chips" id="rateChips">
             <span class="fchip" data-v="0.8">0.8x</span>
@@ -397,12 +475,12 @@
             <span class="fchip" data-v="1.2">1.2x</span>
           </div></div>
           <div class="row mt8">
-            <button class="btn sm" id="btnVoiceTest">▶ 试听考官声音</button>
+            <button class="btn sm" id="btnVoiceTest"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>试听考官声音</button>
             <button class="btn sm ghost" id="btnVoiceList">查看本机可用音色</button>
           </div>
           <div id="voiceListBox" style="font-size:var(--fs-note);color:var(--muted);margin-top:var(--sp-2);max-height:120px;overflow:auto"></div>
 
-          <h3 class="mt16">⚙ 练习偏好</h3>
+          <h3 class="mt16"><svg class="ic" aria-hidden="true"><use href="#i-sliders"/></svg>练习偏好</h3>
           <label class="row" style="font-size:var(--fs-body);gap:var(--sp-2);cursor:pointer">
             <input type="checkbox" id="optAutoTimer" checked>
             <span>抽中 Part 2 后自动开始 60 秒准备计时（抽题即计时）</span>
@@ -419,35 +497,51 @@
   <!-- ==================== 抽题练习 ==================== -->
   <section class="page" id="page-practice">
     <div id="practiceHome">
-      <h1>🎲 抽题练习</h1>
+      <h1><svg class="ic" aria-hidden="true"><use href="#i-dice"/></svg>抽题练习</h1>
       <p class="sub">五维筛选限定范围 → 抽一个题面 → 直面 AI 考官。抽到 Part 2 会自动进入模拟并开始计时。</p>
 
-      <div class="card" style="text-align:center;padding:var(--sp-6)">
-        <div class="filter-row"><span class="filter-label">题型</span><div class="chips" id="fPart">
-          <span class="fchip on" data-v="all">全部</span>
-          <span class="fchip" data-v="1">Part 1 · 问答</span>
-          <span class="fchip" data-v="2">Part 2 · 陈述</span>
-        </div></div>
-        <div class="filter-row"><span class="filter-label">场景</span><div class="chips" id="fScene">
-          <span class="fchip on" data-v="all">全部场景</span>
-        </div></div>
-        <div class="filter-row"><span class="filter-label">季节</span><div class="chips" id="fSeason">
-          <span class="fchip on" data-v="all">全部</span>
-        </div></div>
-        <div class="filter-row"><span class="filter-label">类别</span><div class="chips" id="fCat">
-          <span class="fchip on" data-v="all">全部类别</span>
-        </div></div>
-        <div class="filter-row"><span class="filter-label">难度</span><div class="chips" id="fLevel">
-          <span class="fchip on" data-v="all">不限</span>
-          <span class="fchip" data-v="基础">基础</span>
-          <span class="fchip" data-v="进阶">进阶</span>
-        </div></div>
+      <div class="card" style="text-align:center;padding:var(--sp-4) var(--sp-6)">
+        <!-- 筛选：默认收起成一条状态栏（"当前筛了什么"始终可见），点开才是五维筛选。
+             原来五行筛选常驻，抽题按钮被挤到一屏之外。 -->
+        <div class="coll" id="filterColl" data-collapsed="true" data-active="false">
+          <div class="coll-head">
+            <button class="coll-toggle" id="btnFilterToggle" aria-expanded="false" aria-controls="filterPanel" title="展开 / 收起筛选条件">
+              <svg class="ic" aria-hidden="true"><use href="#i-filter"/></svg>
+              <span class="fsum" id="filterSummary">全部题型 · 全部场景 · 全部 · 全部类别 · 不限</span>
+            </button>
+            <span class="badge gray" id="poolBadge">—</span>
+            <svg class="ic coll-chev" aria-hidden="true"><use href="#i-chevron"/></svg>
+          </div>
+          <div class="coll-body" id="filterPanel">
+            <div class="coll-inner">
+              <div class="filter-row" style="margin-top:var(--sp-4)"><span class="filter-label">题型</span><div class="chips" id="fPart">
+                <span class="fchip on" data-v="all">全部</span>
+                <span class="fchip" data-v="1">Part 1 · 问答</span>
+                <span class="fchip" data-v="2">Part 2 · 陈述</span>
+              </div></div>
+              <div class="filter-row"><span class="filter-label">场景</span><div class="chips" id="fScene">
+                <span class="fchip on" data-v="all">全部场景</span>
+              </div></div>
+              <div class="filter-row"><span class="filter-label">季节</span><div class="chips" id="fSeason">
+                <span class="fchip on" data-v="all">全部</span>
+              </div></div>
+              <div class="filter-row"><span class="filter-label">类别</span><div class="chips" id="fCat">
+                <span class="fchip on" data-v="all">全部类别</span>
+              </div></div>
+              <div class="filter-row"><span class="filter-label">难度</span><div class="chips" id="fLevel">
+                <span class="fchip on" data-v="all">不限</span>
+                <span class="fchip" data-v="基础">基础</span>
+                <span class="fchip" data-v="进阶">进阶</span>
+              </div></div>
+            </div>
+          </div>
+        </div>
 
-        <p style="font-size:var(--fs-note);color:var(--muted);margin-top:var(--sp-2)" id="poolInfo"></p>
-        <div style="margin-top:var(--sp-3)">
-          <button class="btn primary big" id="btnDraw">🎲 抽一个</button>
+        <div style="margin-top:var(--sp-4)">
+          <button class="btn primary big" id="btnDraw"><svg class="ic" aria-hidden="true"><use href="#i-dice"/></svg>抽一个</button>
           <button class="btn" id="btnDrawAgain" style="display:none">换一个</button>
         </div>
+        <p style="font-size:var(--fs-note);color:var(--muted);margin-top:var(--sp-2)" id="poolInfo"></p>
         <div id="drawResult" class="mt16" style="display:none">
           <div class="drawn-card" id="drawnCard"></div>
           <div class="mt16"><button class="btn primary" id="btnGoTopic">进入练习 →</button></div>
@@ -464,7 +558,7 @@
           <div class="cue-card" id="dCue" style="margin-bottom:var(--sp-4)"></div>
 
           <div class="card hidden" id="autoTimerCard">
-            <h2>⏱ 抽题即计时 <span class="badge amber">自动开始</span></h2>
+            <h2><svg class="ic" aria-hidden="true"><use href="#i-timer"/></svg>抽题即计时 <span class="badge amber">自动开始</span></h2>
             <div class="sim-stage" id="atStage">准备时间</div>
             <div class="sim-timer" id="atTimer">01:00</div>
             <textarea id="atNotes" placeholder="快速记关键词：who / where / when / what / why…不要写完整句子"></textarea>
@@ -479,7 +573,7 @@
             <p class="sub" style="margin-bottom:var(--sp-3)">60 秒准备（可记笔记）→ 2 分钟陈述（自动录音）→ 回放自听 + 流利度反馈 + 四维自评</p>
 
             <div id="simStart">
-              <button class="btn primary big" id="btnSimStart">▶ 开始模拟</button>
+              <button class="btn primary big" id="btnSimStart"><svg class="ic" aria-hidden="true"><use href="#i-play"/></svg>开始模拟</button>
               <p class="sim-stage" style="margin-top:var(--sp-2)">找安静环境，全程只说英语。</p>
             </div>
 
@@ -518,7 +612,7 @@
           </div>
 
           <div class="card" id="upgradeCard">
-            <h2>📈 表达三档升级 <span class="badge purple">6 / 7 / 8 分对照</span></h2>
+            <h2><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg>表达三档升级 <span class="badge purple">6 / 7 / 8 分对照</span></h2>
             <p class="sub" style="margin-bottom:var(--sp-3)">把你刚才的回答与参考表达并列改写，并逐条告诉你换了哪个词、补了什么连接词。</p>
             <div id="upgradeBody"></div>
             <div class="row">
@@ -527,30 +621,41 @@
             </div>
           </div>
 
-          <div class="card">
-            <h2>核心词汇 <span class="badge gray" style="margin-left:var(--sp-1)">点击朗读 · 点 + 加入生词本</span></h2>
-            <div class="vocab-line" id="dVocab"></div>
-          </div>
-
-          <div class="card">
-            <h2>可参考表达 <span class="badge gray" style="margin-left:var(--sp-1)">点击朗读</span></h2>
-            <div id="dExprs"></div>
+          <!-- 备考素材：词汇与表达合并为一张默认收起的卡。
+               这两块是"查阅资料"而非"当前动作"，常驻会把核心动作挤出屏幕。 -->
+          <div class="card coll" id="materialColl" data-collapsed="true">
+            <div class="coll-head">
+              <button class="coll-toggle" aria-expanded="false" aria-controls="materialPanel">
+                <svg class="ic" aria-hidden="true"><use href="#i-books"/></svg>
+                <span class="coll-title">备考素材</span>
+                <span class="badge gray" id="materialCount">—</span>
+              </button>
+              <svg class="ic coll-chev" aria-hidden="true"><use href="#i-chevron"/></svg>
+            </div>
+            <div class="coll-body" id="materialPanel">
+              <div class="coll-inner">
+                <h3 class="mt16">核心词汇 <span class="badge gray">点击朗读 · 点 + 加入生词本</span></h3>
+                <div class="vocab-line" id="dVocab"></div>
+                <h3 class="mt16">可参考表达 <span class="badge gray">点击朗读</span></h3>
+                <div id="dExprs"></div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div>
+        <div class="side">
           <div class="card" style="display:flex;flex-direction:column">
             <h2>AI 考官 <span class="badge blue" id="examinerBadge">Amy</span></h2>
             <p class="sub" style="margin-bottom:var(--sp-3)" id="examinerHint">会根据你的回答动态追问，回答太短会要求展开，跑题会被拉回来。</p>
             <div class="chat-box" id="chatBox"></div>
             <div class="chat-input-row">
-              <button class="mic-btn" id="btnMic" title="点击开始说话">🎙</button>
+              <button class="mic-btn" id="btnMic" title="点击开始说话"><svg class="ic" aria-hidden="true"><use href="#i-mic"/></svg></button>
               <input id="chatInput" placeholder="说出或输入你的回答…（回车发送）">
               <button class="btn primary" id="btnSend">发送</button>
             </div>
             <div style="font-size:var(--fs-note);color:var(--muted);margin-top:var(--sp-2)" id="recHint">语音识别需 Chrome / Edge 并允许麦克风。</div>
             <div class="row mt8">
-              <button class="btn sm" id="btnSpeakQ">🔊 重读当前问题</button>
+              <button class="btn sm" id="btnSpeakQ"><svg class="ic" aria-hidden="true"><use href="#i-volume"/></svg>重读当前问题</button>
               <button class="btn sm ghost" id="btnEndTopic">本轮结束，出小结</button>
             </div>
           </div>
@@ -562,14 +667,14 @@
   <!-- ==================== 套题模考 ==================== -->
   <section class="page" id="page-mock">
     <div id="mockHome">
-      <h1>🎯 套题模考</h1>
+      <h1><svg class="ic" aria-hidden="true"><use href="#i-target"/></svg>套题模考</h1>
       <p class="sub">真实考试顺序：Part 1 日常问答（约 4 分钟）→ Part 2 准备 1 分钟 + 陈述 2 分钟 → Part 3 深入讨论（约 4 分钟）。</p>
 
       <div class="card">
         <h2>生成一套完整题</h2>
         <p style="font-size:var(--fs-body);color:var(--muted)">系统会随机抽取 1 个 Part 1 话题 + 1 张 Part 2 题卡 + 该题卡对应的 Part 3 讨论题。</p>
         <div class="row mt16">
-          <button class="btn primary big" id="btnMockNew">🎲 生成一套题</button>
+          <button class="btn primary big" id="btnMockNew"><svg class="ic" aria-hidden="true"><use href="#i-dice"/></svg>生成一套题</button>
           <label class="row" style="font-size:var(--fs-body);gap:var(--sp-2);cursor:pointer">
             <input type="checkbox" id="optMockRecord" checked><span>启用录音</span>
           </label>
@@ -619,7 +724,7 @@
             <h2>考官对话</h2>
             <div class="chat-box" id="mockChat" style="height:300px"></div>
             <div class="chat-input-row">
-              <button class="mic-btn" id="mockMic" title="点击开始说话">🎙</button>
+              <button class="mic-btn" id="mockMic" title="点击开始说话"><svg class="ic" aria-hidden="true"><use href="#i-mic"/></svg></button>
               <input id="mockInput" placeholder="说出或输入你的回答…">
               <button class="btn primary" id="mockSend">发送</button>
             </div>
@@ -630,7 +735,7 @@
     </div>
 
     <div id="mockResult" class="hidden">
-      <h1>📋 本次模考结果</h1>
+      <h1><svg class="ic" aria-hidden="true"><use href="#i-doc"/></svg>本次模考结果</h1>
       <div class="card">
         <h2>练习报告</h2>
         <div id="mockReportBody"></div>
@@ -658,7 +763,7 @@
 
   <!-- ==================== 题库 ==================== -->
   <section class="page" id="page-library">
-    <h1>📚 题库</h1>
+    <h1><svg class="ic" aria-hidden="true"><use href="#i-books"/></svg>题库</h1>
     <p class="sub">题面来自公开流传的当季保留题清单，并补充了职场 / 学术 / 社会场景的扩展题；词汇与参考表达为本项目自行撰写。</p>
     <div class="card">
       <h2>浏览与检索 <span class="badge blue" id="libStat">—</span></h2>
@@ -669,13 +774,13 @@
 
   <!-- ==================== 复盘 ==================== -->
   <section class="page" id="page-review">
-    <h1>📈 复盘</h1>
+    <h1><svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg>复盘</h1>
     <p class="sub">练习历史、每题自评、复练次数、练得最少的话题类型，以及你自己攒的生词本。</p>
 
     <div class="card">
       <h2>练习历史 <span class="badge gray" id="histCount">0 条</span></h2>
       <div class="row mb16">
-        <button class="btn sm" id="btnExportCsv">⬇ 导出 CSV（长期趋势）</button>
+        <button class="btn sm" id="btnExportCsv"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>导出 CSV（长期趋势）</button>
         <button class="btn sm danger" id="btnClearHist">清空历史</button>
       </div>
       <div id="histList"></div>
@@ -690,9 +795,9 @@
     <div class="card">
       <h2>生词本 <span class="badge blue" id="wbCount">0 词</span></h2>
       <div class="row mb16">
-        <button class="btn sm primary" id="btnWbSpeak">🔊 整本朗读</button>
-        <button class="btn sm" id="btnWbStop">⏹ 停止</button>
-        <button class="btn sm" id="btnWbExport">⬇ 导出 CSV</button>
+        <button class="btn sm primary" id="btnWbSpeak"><svg class="ic" aria-hidden="true"><use href="#i-volume"/></svg>整本朗读</button>
+        <button class="btn sm" id="btnWbStop"><svg class="ic" aria-hidden="true"><use href="#i-stop"/></svg>停止</button>
+        <button class="btn sm" id="btnWbExport"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg>导出 CSV</button>
         <button class="btn sm danger" id="btnWbClear">清空</button>
       </div>
       <div id="wordbookList"></div>
@@ -710,8 +815,8 @@
         · 保存期限：<b>无限期</b>——除非你在下方主动删除，或自行清除浏览器站点数据
       </div>
       <div class="row">
-        <button class="btn sm danger" id="btnClearAudio">🗑 删除全部录音</button>
-        <button class="btn sm danger" id="btnClearAll">⚠ 清除全部本机数据</button>
+        <button class="btn sm danger" id="btnClearAudio"><svg class="ic" aria-hidden="true"><use href="#i-trash"/></svg>删除全部录音</button>
+        <button class="btn sm danger" id="btnClearAll"><svg class="ic" aria-hidden="true"><use href="#i-alert"/></svg>清除全部本机数据</button>
       </div>
     </div>
   </section>
