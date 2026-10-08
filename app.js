@@ -18,12 +18,15 @@
   const mmss = s => String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
 
   let toastTimer = null;
-  function toast(msg) {
+  /* type: 省略=成功/中性 · "warn"=需要注意 · "err"=失败（错误停留更久） */
+  function toast(msg, type) {
     const el = $("#toast");
     el.textContent = msg;
+    el.classList.remove("warn", "err");
+    if (type === "warn" || type === "err") el.classList.add(type);
     el.classList.add("show");
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => el.classList.remove("show"), 2200);
+    toastTimer = setTimeout(() => el.classList.remove("show"), type === "err" ? 3600 : 2200);
   }
 
   const rand = arr => arr[Math.floor(Math.random() * arr.length)];
@@ -396,7 +399,7 @@
   async function submitAnswer(text, boxSel) {
     text = (text || "").trim();
     if (!text || CONV.busy) return;
-    if (!CONV.topic) { toast("先抽一道题、点「进入练习」再作答"); return; }
+    if (!CONV.topic) { toast("先抽一道题、点「进入练习」再作答", "warn"); return; }
     CONV.busy = true;
     addMsg(boxSel, "me", text);
     CONV.history.push({ role: "user", content: text });
@@ -447,6 +450,15 @@
   }
   function renderAll() { renderFilterChips(); renderPoolInfo(); }
 
+  /* 标签层次：主标签保留为徽章（每张卡最多 1 个），类别 / 场景 / 季节 / 难度
+     降级为一行中性元信息。原来一张抽题卡会叠 5 个同尺寸徽章，等于没有重点。 */
+  const PART_LABEL = { 1: "问答", 2: "陈述", 3: "深入讨论" };
+  function tagHead(part, meta) {
+    const line = (meta || []).filter(Boolean).map(esc).join(" · ");
+    return '<span class="badge' + (part === 2 ? " amber" : "") + '">Part ' + part + " · " + (PART_LABEL[part] || "") + "</span>" +
+      (line ? '<div class="meta-line">' + line + "</div>" : "");
+  }
+
   function renderPoolInfo() {
     const p = promptsFor(filter);
     const t = poolFor(filter);
@@ -460,7 +472,7 @@
     const pool = promptsFor(filter);
     if (!pool.length) {
       $("#drawResult").style.display = "block";
-      $("#drawnCard").innerHTML = '<span style="color:var(--danger);font-size:14px">当前组合下没有题目，请放宽筛选条件。</span>';
+      $("#drawnCard").innerHTML = '<span style="color:var(--danger);font-size:var(--fs-lead)">当前组合下没有题目，请放宽筛选条件。</span>';
       $("#btnDrawAgain").style.display = "none";
       return;
     }
@@ -472,12 +484,10 @@
 
     $("#drawResult").style.display = "block";
     $("#btnDrawAgain").style.display = "inline-block";
-    const badge = pick.part === 1 ? '<span class="badge blue">Part 1 · 问答</span>' : '<span class="badge amber">Part 2 · 陈述</span>';
     $("#drawnCard").innerHTML =
-      "<div>" + badge + '<span class="badge">' + esc(pick.topic.cat) + '</span><span class="badge gray">' + esc(pick.topic.scene) + "</span>" +
-      '<span class="badge gray">' + esc(pick.topic.season) + '</span><span class="badge gray">' + esc(pick.topic.level) + "</span></div>" +
+      "<div>" + tagHead(pick.part, [pick.topic.cat, pick.topic.scene, pick.topic.season, pick.topic.level]) + "</div>" +
       '<div class="drawn-q">' + esc(pick.text) + "</div>" +
-      '<div style="font-size:13px;color:var(--muted);margin-top:8px">' +
+      '<div class="meta-line" style="margin-top:var(--sp-2)">' +
       (pick.part === 1
         ? "话题：" + esc(pick.topic.zh) + " / " + esc(pick.topic.en) + "（共 " + pick.topic.qs.length + " 问，第 " + (pick.qi + 1) + " 问）"
         : "题卡：" + esc(pick.topic.zh) + "（" + pick.topic.bullets.length + " 个要点）· 抽中后自动开始计时") +
@@ -503,19 +513,17 @@
     $("#practiceHome").classList.add("hidden");
     $("#practiceDetail").classList.remove("hidden");
 
-    $("#dHead").innerHTML = "<h1>" + esc(curTopic.zh) + "</h1><div style='margin-top:4px'>" +
-      '<span class="badge ' + (isP2 ? "amber" : "blue") + '">Part ' + curTopic.part + "</span>" +
-      '<span class="badge">' + esc(curTopic.cat) + '</span><span class="badge gray">' + esc(curTopic.scene) + "</span>" +
-      '<span class="badge gray">' + esc(curTopic.season) + '</span><span class="badge gray">' + esc(curTopic.level) + "</span></div>";
+    $("#dHead").innerHTML = "<h1>" + esc(curTopic.zh) + "</h1>" +
+      tagHead(curTopic.part, [curTopic.cat, curTopic.scene, curTopic.season, curTopic.level]);
 
     if (isP2) {
       $("#dCue").classList.remove("no-label");
-      $("#dCue").innerHTML = '<p style="font-weight:600;font-size:16px">' + esc(curTopic.cue) + "</p><ul>" +
+      $("#dCue").innerHTML = '<p style="font-weight:600;font-size:var(--fs-lead)">' + esc(curTopic.cue) + "</p><ul>" +
         curTopic.bullets.map(b => "<li>" + esc(b) + "</li>").join("") + "</ul>";
     } else {
       $("#dCue").classList.add("no-label");
-      $("#dCue").innerHTML = '<p style="font-weight:600;font-size:15px">' + esc(curTopic.en) + "</p>" +
-        '<p style="font-size:13px;color:var(--muted);margin:2px 0 10px">本话题共 ' + curTopic.qs.length + " 问，当前高亮为抽中的题目</p>" +
+      $("#dCue").innerHTML = '<p style="font-weight:600;font-size:var(--fs-lead)">' + esc(curTopic.en) + "</p>" +
+        '<p style="font-size:var(--fs-body);color:var(--muted);margin:2px 0 var(--sp-3)">本话题共 ' + curTopic.qs.length + " 问，当前高亮为抽中的题目</p>" +
         curTopic.qs.map((q, i) => '<div class="qlist-item' + (i === qi ? " hot" : "") + '">' + (i + 1) + ". " + esc(q) + "</div>").join("");
     }
 
@@ -585,9 +593,9 @@
     const btn = $(btnSel);
     if (!btn) return;
     btn.addEventListener("click", () => {
-      if (!srRef.g) { if (!SR) { toast("当前浏览器不支持语音识别，请用 Chrome / Edge"); return; } srRef.g = initSR(srRef.onFinal, srRef.hint, btnSel); }
+      if (!srRef.g) { if (!SR) { toast("当前浏览器不支持语音识别，请用 Chrome / Edge", "err"); return; } srRef.g = initSR(srRef.onFinal, srRef.hint, btnSel); }
       if (recOn) { try { srRef.g.stop(); } catch (e) {} return; }
-      try { srRef.g.start(); recOn = true; btn.classList.add("rec"); } catch (e) { toast("麦克风启动失败：" + e.message); }
+      try { srRef.g.start(); recOn = true; btn.classList.add("rec"); } catch (e) { toast("麦克风启动失败：" + e.message, "err"); }
     });
   }
   const micPractice = { g: null, onFinal: t => { $("#chatInput").value = t; submitAnswer(t, "#chatBox"); }, hint: "#recHint" };
@@ -871,7 +879,7 @@
   /* 本轮小结（未做 Part 2 模拟时也能落库） */
   function endRound() {
     if (!curTopic) return;
-    if (!CONV.buf.length && !lastSimMeta) { toast("先回答几个问题再结束吧"); return; }
+    if (!CONV.buf.length && !lastSimMeta) { toast("先回答几个问题再结束吧", "warn"); return; }
     const flagged = CONV.buf.filter(x => x.flag === "short" || x.flag === "offtopic").length;
     const box = $("#chatBox");
     box.insertAdjacentHTML("beforeend",
@@ -890,9 +898,9 @@
   }
   function renderTiers(res, engineLabel) {
     const E = window.IELTS_ENGINE;
-    let html = '<p style="font-size:13px;color:var(--muted);margin-bottom:10px">基底：' + esc(res.baseNote || "") +
+    let html = '<p style="font-size:var(--fs-body);color:var(--muted);margin-bottom:var(--sp-3)">基底：' + esc(res.baseNote || "") +
       ' · 引擎：' + esc(engineLabel) + "</p>";
-    html += '<div style="font-size:13.5px;margin-bottom:12px"><b>你的原话：</b>' + esc(res.base) + "</div>";
+    html += '<div style="font-size:var(--fs-body);margin-bottom:var(--sp-3)"><b>你的原话：</b>' + esc(res.base) + "</div>";
     res.tiers.forEach(t => {
       html += '<div class="tier b' + t.band + '">' +
         '<div class="thead"><span class="tname">' + esc(t.name) + '</span><span class="badge ' +
@@ -912,11 +920,11 @@
         '<span class="chg-to">' + esc(n.to) + "</span>" +
         (n.note ? '<span style="color:var(--muted)">· ' + esc(n.note) + "</span>" : "") + "</div>").join("");
     }
-    html += '<p style="font-size:12.5px;color:var(--muted);margin-top:10px">' +
+    html += '<p style="font-size:var(--fs-note);color:var(--muted);margin-top:var(--sp-3)">' +
       '<ins class="df-add">绿色</ins> = 新增内容；<del class="df-del">红色删除线</del> = 被替换掉的原文。' +
       "对比三档差异，能直观看到「同样的意思，怎么说才更得分」。</p>";
     if (String(engineLabel).indexOf("本地") === 0) {
-      html += '<p style="font-size:12.5px;color:var(--amber);margin-top:6px">' +
+      html += '<p style="font-size:var(--fs-note);color:var(--amber);margin-top:var(--sp-2)">' +
         "⚠ 本地引擎只做<b>语法安全</b>的替换与结构增补（不会把动词搭配改坏），所以个别位置读起来仍偏生硬。" +
         "想要真正地道的整句改写，可在「首页 → AI 考官引擎」填入你自己的大模型 API Key。</p>";
     }
@@ -942,7 +950,7 @@
       try {
         res = await window.IELTS_LLM.upgradeAnswer(curTopic, CONV.lastQ, ans);
         label = "大模型（" + window.IELTS_LLM.status() + "）";
-      } catch (e) { $("#upgradeBody").innerHTML = ""; toast("大模型调用失败，改用本地引擎：" + e.message); }
+      } catch (e) { $("#upgradeBody").innerHTML = ""; toast("大模型调用失败，改用本地引擎：" + e.message, "err"); }
     }
     if (!res) res = window.IELTS_ENGINE.upgrade(ans || (curTopic.exprs[0] ? curTopic.exprs[0][0] : ""), curTopic);
     renderTiers(res, label);
@@ -966,7 +974,7 @@
     $$("#assessHist [data-play]").forEach(b => b.addEventListener("click", async () => {
       let blob = null;
       try { blob = await idbGet(b.dataset.play); } catch (e) { blob = null; }
-      if (!blob) { toast("该录音已不存在（可能清理过浏览器数据）"); return; }
+      if (!blob) { toast("该录音已不存在（可能清理过浏览器数据）", "warn"); return; }
       if (lastAudioURL) URL.revokeObjectURL(lastAudioURL);
       lastAudioURL = URL.createObjectURL(blob);
       const a = $("#simAudio"); a.src = lastAudioURL; a.play();
@@ -977,7 +985,7 @@
   function addWord(pair, topic) {
     if (!pair) return;
     const wb = loadWb();
-    if (wb.some(x => x.en.toLowerCase() === pair[0].toLowerCase())) { toast("“" + pair[0] + "”已在生词本里"); return; }
+    if (wb.some(x => x.en.toLowerCase() === pair[0].toLowerCase())) { toast("“" + pair[0] + "”已在生词本里", "warn"); return; }
     wb.unshift({ en: pair[0], zh: pair[1], topic: topic ? topic.zh : "", ts: nowISO() });
     saveWb(wb); renderReview();
     toast("已加入生词本：" + pair[0]);
@@ -1003,7 +1011,7 @@
         : t.cat + " · " + t.scene + " · " + t.season + " · " + t.level + " · " + t.bullets.length + " 要点 · " + (t.part3 || []).length + " 道追问";
       html += '<div class="lib-item" data-id="' + esc(t.id) + '"><div><div class="t">' + esc(t.zh) +
         ' <span style="color:var(--muted);font-weight:400">' + esc(t.part === 1 ? t.en : (t.cue || "")) + "</span></div>" +
-        '<div class="m">' + esc(meta) + "</div></div><span style='color:var(--teal);font-size:13px'>练习 →</span></div>";
+        '<div class="m">' + esc(meta) + "</div></div><span style='color:var(--teal);font-size:var(--fs-body)'>练习 →</span></div>";
     });
     $("#topicList").innerHTML = html;
     $$("#topicList .lib-item").forEach(el => el.addEventListener("click", () => {
@@ -1025,7 +1033,7 @@
       const flagged = (r.qa || []).filter(x => x.flag === "short" || x.flag === "offtopic").length;
       return '<div class="hist-item">' +
         "<span>" + esc(r.date) + "</span>" +
-        '<span class="badge ' + (r.mode === "mock" ? "amber" : "blue") + '">' + (r.mode === "mock" ? "套题" : "Part " + r.part) + "</span>" +
+        '<span class="badge ' + (r.mode === "mock" ? "purple" : "") + '">' + (r.mode === "mock" ? "套题" : "Part " + r.part) + "</span>" +
         '<span style="flex:1;color:var(--muted)">' + esc(r.topic) + "</span>" +
         (r.qa ? '<span style="color:var(--muted)">' + r.qa.length + " 问</span>" : "") +
         (r.wpm ? '<span style="color:var(--muted)">' + r.wpm + " 词/分</span>" : "") +
@@ -1062,7 +1070,7 @@
     const rows = Object.keys(byCat).map(c => ({ c: c, total: byCat[c].total, done: byCat[c].done, pct: byCat[c].done / byCat[c].total }))
       .sort((a, b) => a.pct - b.pct);
     const weakest = rows.filter(r => r.pct === 0).slice(0, 3);
-    let gap = '<h3>覆盖缺口 —— 练得最少的话题类型</h3><p style="font-size:13px;color:var(--muted);margin-bottom:10px">按类别统计你实际练过的话题数。</p>';
+    let gap = '<h3>覆盖缺口 —— 练得最少的话题类型</h3><p style="font-size:var(--fs-body);color:var(--muted);margin-bottom:var(--sp-3)">按类别统计你实际练过的话题数。</p>';
     gap += rows.slice(0, 10).map(r =>
       '<div class="note-li"><span style="min-width:96px">' + esc(r.c) + "</span>" +
       '<div class="bar-wrap"><div class="bar" style="width:' + Math.round(r.pct * 100) + '%"></div></div>' +
@@ -1090,14 +1098,14 @@
     const never = ALL.filter(t => !counts[t.id]).length;
 
     let weak = '<h3>待攻克清单 <span class="badge gray">' + todo.length + " 条</span></h3>";
-    weak += '<p style="font-size:13px;color:var(--muted);margin:6px 0 10px">已被判定为「回答过短 / 偏离题目」或整轮自评低于 6.5 的题目，建议逐条重说一遍。</p>';
+    weak += '<p style="font-size:var(--fs-body);color:var(--muted);margin:var(--sp-2) 0 var(--sp-3)">已被判定为「回答过短 / 偏离题目」或整轮自评低于 6.5 的题目，建议逐条重说一遍。</p>';
     weak += todo.length
       ? todo.slice(0, 20).map(x =>
         '<div class="note-li"><span class="badge ' + (x.flag === "offtopic" ? "danger" : x.flag === "short" ? "amber" : "gray") + '">' +
         (x.flag === "offtopic" ? "跑题" : x.flag === "short" ? "过短" : "低分") + "</span>" +
         '<span style="flex:1">' + esc(x.q) + '</span><span style="color:var(--muted)">' + esc(x.topic) + " · " + esc(x.date) + "</span></div>").join("")
       : '<p class="sim-stage">暂无待攻克题目。</p>';
-    weak += '<p style="font-size:13px;color:var(--muted);margin-top:10px">复练覆盖：已练 ' + (ALL.length - never) + " / " + ALL.length +
+    weak += '<p style="font-size:var(--fs-body);color:var(--muted);margin-top:var(--sp-3)">复练覆盖：已练 ' + (ALL.length - never) + " / " + ALL.length +
       " 个话题，还有 <b>" + never + "</b> 个话题一次都没抽到过。</p>";
     $("#weakList").innerHTML = weak;
   }
@@ -1123,7 +1131,7 @@
   let wbSpeaking = false;
   $("#btnWbSpeak").addEventListener("click", () => {
     const wb = loadWb();
-    if (!wb.length) { toast("生词本还是空的"); return; }
+    if (!wb.length) { toast("生词本还是空的", "warn"); return; }
     wbSpeaking = true;
     let i = 0;
     const step = () => {
@@ -1157,7 +1165,7 @@
   }
   $("#btnClearAudio").addEventListener("click", async () => {
     const st = await idbStats();
-    if (!st || !st.count) { toast("没有可删除的录音"); return; }
+    if (!st || !st.count) { toast("没有可删除的录音", "warn"); return; }
     if (!confirm("删除全部 " + st.count + " 段录音（约 " + fmtBytes(st.bytes) + "）？此操作不可撤销。\n练习记录与自评会保留。")) return;
     const n = await idbClearAll();
     toast("已删除 " + n + " 段录音");
@@ -1193,7 +1201,7 @@
   }
   $("#btnExportCsv").addEventListener("click", () => {
     const list = loadLog();
-    if (!list.length) { toast("还没有练习记录"); return; }
+    if (!list.length) { toast("还没有练习记录", "warn"); return; }
     const head = ["时间", "模式", "题型", "话题", "类别", "场景", "季节", "题数", "回答总词数", "陈述时长(秒)", "语速(词/分)", "填充词", "FC", "LR", "GRA", "PR", "均分", "待改题数"];
     const rows = list.map(r => {
       const words = (r.qa || []).reduce((s, x) => s + (x.words || 0), 0);
@@ -1210,7 +1218,7 @@
   });
   $("#btnWbExport").addEventListener("click", () => {
     const wb = loadWb();
-    if (!wb.length) { toast("生词本还是空的"); return; }
+    if (!wb.length) { toast("生词本还是空的", "warn"); return; }
     download("ielts-oral-wordbook-" + new Date().toISOString().slice(0, 10) + ".csv",
       [["单词", "释义", "来源话题", "加入时间"]].concat(wb.map(w => [w.en, w.zh, w.topic, (w.ts || "").slice(0, 10)]))
         .map(r => r.map(csvCell).join(",")).join("\r\n"));
@@ -1260,15 +1268,15 @@
     $("#mockPreview").style.display = "block";
     $("#mockPreview").innerHTML =
       '<div class="drawn-card">' +
-      '<div><span class="badge blue">Part 1 · ' + esc(s.p1.cat) + '</span><span class="badge gray">' + esc(s.p1.scene) + '</span><span class="badge gray">' + esc(s.p1.season) + "</span></div>" +
+      "<div>" + tagHead(1, [s.p1.cat, s.p1.scene, s.p1.season]) + "</div>" +
       '<div class="drawn-q">' + esc(s.p1.zh) + " / " + esc(s.p1.en) + "（" + s.p1.qs.length + " 问）</div>" +
-      '<div style="font-size:13px;color:var(--muted);margin:10px 0 4px">— — —</div>' +
-      '<div><span class="badge amber">Part 2 · ' + esc(s.p2.cat) + '</span><span class="badge gray">' + esc(s.p2.scene) + "</span></div>" +
+      '<hr class="sep">' +
+      "<div>" + tagHead(2, [s.p2.cat, s.p2.scene]) + "</div>" +
       '<div class="drawn-q">' + esc(s.p2.cue) + "</div>" +
-      '<ul style="margin:8px 0 0 18px;font-size:14px">' + s.p2.bullets.map(b => "<li>" + esc(b) + "</li>").join("") + "</ul>" +
-      '<div style="font-size:13px;color:var(--muted);margin:10px 0 4px">— — —</div>' +
-      '<div><span class="badge">Part 3 · ' + (s.p2.part3 || []).length + " 道追问</span></div>" +
-      '<div class="drawn-q" style="font-size:14px">' + esc((s.p2.part3 || []).map(p => p[0])[0] || "") + " …</div>" +
+      '<ul style="margin:var(--sp-2) 0 0 var(--sp-4);font-size:var(--fs-body)">' + s.p2.bullets.map(b => "<li>" + esc(b) + "</li>").join("") + "</ul>" +
+      '<hr class="sep">' +
+      "<div>" + tagHead(3, [(s.p2.part3 || []).length + " 道追问"]) + "</div>" +
+      '<div class="drawn-q" style="font-size:var(--fs-body)">' + esc((s.p2.part3 || []).map(p => p[0])[0] || "") + " …</div>" +
       '<div class="row mt16"><button class="btn primary big" id="btnMockStart">▶ 开始模考</button></div>' +
       "</div>";
     $("#btnMockStart").addEventListener("click", startMock);
@@ -1325,7 +1333,7 @@
     $("#btnMockNext").textContent = isLast ? "结束模考并出报告 →" : "下一阶段 →";
 
     if (st.key === "p1") {
-      $("#mockCue").innerHTML = "<p style='font-weight:600'>" + esc(s.p1.en) + "</p><p style='font-size:13px;color:var(--muted)'>" +
+      $("#mockCue").innerHTML = "<p style='font-weight:600'>" + esc(s.p1.en) + "</p><p style='font-size:var(--fs-body);color:var(--muted)'>" +
         esc(s.p1.zh) + " · 考官会从这里开始提问并追问</p>" +
         s.p1.qs.map((q, k) => '<div class="qlist-item">' + (k + 1) + ". " + esc(q) + "</div>").join("");
       convReset(s.p1, 1, "mock");
@@ -1333,12 +1341,12 @@
     } else if (st.key === "p2prep") {
       $("#mockNotesCard").classList.remove("hidden");
       $("#mockNotes").value = "";
-      $("#mockCue").innerHTML = '<p style="font-weight:600">' + esc(s.p2.cue) + "</p><ul style='margin:8px 0 0 18px;font-size:14px'>" +
+      $("#mockCue").innerHTML = '<p style="font-weight:600">' + esc(s.p2.cue) + "</p><ul style='margin:var(--sp-2) 0 0 var(--sp-4);font-size:var(--fs-lead)'>" +
         s.p2.bullets.map(b => "<li>" + esc(b) + "</li>").join("") + "</ul>";
       $("#mockInput").disabled = true; $("#mockSend").disabled = true; $("#mockMic").disabled = true;
       addSys("#mockChat", "考官把题卡递给你：1 分钟准备，可在左侧记关键词，时间到自动进入陈述。");
     } else if (st.key === "p2talk") {
-      $("#mockCue").innerHTML = '<p style="font-weight:600">' + esc(s.p2.cue) + "</p><p style='font-size:13px;color:var(--muted)'>现在开口讲满 2 分钟</p>";
+      $("#mockCue").innerHTML = '<p style="font-weight:600">' + esc(s.p2.cue) + "</p><p style='font-size:var(--fs-body);color:var(--muted)'>现在开口讲满 2 分钟</p>";
       $("#mockInput").disabled = true; $("#mockSend").disabled = true; $("#mockMic").disabled = true;
       $("#mockRecDot").classList.remove("hidden");
       $("#mockActRow").innerHTML = '<button class="btn sm" id="btnMockStopTalk">提前结束陈述</button>';
@@ -1355,7 +1363,7 @@
     } else if (st.key === "p3") {
       $("#mockRecDot").classList.add("hidden");
       const p3 = (s.p2.part3 || []).map(p => p[0]);
-      $("#mockCue").innerHTML = "<p style='font-weight:600'>Part 3 · 深入讨论</p><p style='font-size:13px;color:var(--muted)'>考官会把这些追问推向抽象层面，尽量展开论述。</p>" +
+      $("#mockCue").innerHTML = "<p style='font-weight:600'>Part 3 · 深入讨论</p><p style='font-size:var(--fs-body);color:var(--muted)'>考官会把这些追问推向抽象层面，尽量展开论述。</p>" +
         p3.map((q, k) => '<div class="qlist-item">' + (k + 1) + ". " + esc(q) + "</div>").join("");
       convReset(s.p2, 3, "mock");
       examinerOpen(s.p2, 3, null, "#mockChat");
@@ -1420,15 +1428,15 @@
       };
     }
     mock.report = rep;
-    const li = (arr, cls) => (arr || []).length ? "<ul style='margin:6px 0 0 20px;font-size:14px'>" + arr.map(x => '<li class="' + cls + '">' + esc(x) + "</li>").join("") + "</ul>" : "<p class='sim-stage'>—</p>";
+    const li = (arr, cls) => (arr || []).length ? "<ul style='margin:var(--sp-2) 0 0 var(--sp-4);font-size:var(--fs-lead)'>" + arr.map(x => '<li class="' + cls + '">' + esc(x) + "</li>").join("") + "</ul>" : "<p class='sim-stage'>—</p>";
     $("#mockReportBody").innerHTML =
-      '<p style="font-size:14.5px;margin-bottom:12px">' + esc(rep.overall || "") + "</p>" +
+      '<p style="font-size:var(--fs-lead);margin-bottom:var(--sp-3)">' + esc(rep.overall || "") + "</p>" +
       '<div class="grid grid-3">' +
       "<div><h3>✅ 优势</h3>" + li(rep.strengths) + "</div>" +
       "<div><h3>⚠ 短板</h3>" + li(rep.weaknesses) + "</div>" +
       "<div><h3>💡 建议</h3>" + li(rep.advice) + "</div>" +
       "</div>" +
-      '<p style="font-size:12.5px;color:var(--muted);margin-top:12px">报告来源：' + esc(label) + "</p>";
+      '<p style="font-size:var(--fs-note);color:var(--muted);margin-top:var(--sp-3)">报告来源：' + esc(label) + "</p>";
     window.scrollTo(0, 0);
   }
 
