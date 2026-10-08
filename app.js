@@ -396,6 +396,7 @@
   async function submitAnswer(text, boxSel) {
     text = (text || "").trim();
     if (!text || CONV.busy) return;
+    if (!CONV.topic) { toast("先抽一道题、点「进入练习」再作答"); return; }
     CONV.busy = true;
     addMsg(boxSel, "me", text);
     CONV.history.push({ role: "user", content: text });
@@ -661,6 +662,49 @@
       rq.onsuccess = () => res(rq.result); rq.onerror = () => rej(rq.error);
     });
   }
+  /* 删除单段录音（按 id） */
+  async function idbDel(id) {
+    if (!hasIDB || !id) return;
+    const db = await idbOpen();
+    return new Promise((res, rej) => {
+      const tx = db.transaction("recordings", "readwrite");
+      tx.objectStore("recordings").delete(id);
+      tx.oncomplete = res; tx.onerror = () => rej(tx.error);
+    });
+  }
+  /* 录音占用统计：{ count, bytes }；环境不支持时返回 null */
+  async function idbStats() {
+    if (!hasIDB) return null;
+    try {
+      const db = await idbOpen();
+      return await new Promise((res, rej) => {
+        const rq = db.transaction("recordings").objectStore("recordings").getAll();
+        rq.onsuccess = () => {
+          const arr = rq.result || [];
+          res({ count: arr.length, bytes: arr.reduce((s, b) => s + (b && b.size ? b.size : 0), 0) });
+        };
+        rq.onerror = () => rej(rq.error);
+      });
+    } catch (e) { return null; }
+  }
+  /* 清空全部录音，返回被删条数 */
+  async function idbClearAll() {
+    if (!hasIDB) return 0;
+    try {
+      const db = await idbOpen();
+      const n = await new Promise(res => {
+        const rq = db.transaction("recordings").objectStore("recordings").count();
+        rq.onsuccess = () => res(rq.result || 0); rq.onerror = () => res(0);
+      });
+      await new Promise((res, rej) => {
+        const tx = db.transaction("recordings", "readwrite");
+        tx.objectStore("recordings").clear();
+        tx.oncomplete = res; tx.onerror = () => rej(tx.error);
+      });
+      return n;
+    } catch (e) { return 0; }
+  }
+  const fmtBytes = b => (b < 1024 ? b + " B" : b < 1048576 ? (b / 1024).toFixed(0) + " KB" : (b / 1048576).toFixed(1) + " MB");
 
   /* ======================= 抽题即计时 ======================= */
   let atInt = null, atLeft = 60, atDone = null;
@@ -970,13 +1014,13 @@
 
   /* ======================= 复盘 ======================= */
   function renderReview() {
-    renderHist(); renderWeak(); renderWordbook();
+    renderHist(); renderWeak(); renderWordbook(); refreshStoreStat();
   }
   function renderHist() {
     const list = loadLog();
     $("#histCount").textContent = list.length + " 条";
     if (!list.length) { $("#histList").innerHTML = '<p class="sim-stage">还没有练习记录。</p>'; return; }
-    $("#histList").innerHTML = list.slice(0, 60).map(r => {
+    $("#histList").innerHTML = list.slice(0, 60).map((r, i) => {
       const avg = r.scores ? ((r.scores.FC + r.scores.LR + r.scores.GRA + r.scores.PR) / 4).toFixed(1) : "—";
       const flagged = (r.qa || []).filter(x => x.flag === "short" || x.flag === "offtopic").length;
       return '<div class="hist-item">' +
@@ -986,8 +1030,20 @@
         (r.qa ? '<span style="color:var(--muted)">' + r.qa.length + " 问</span>" : "") +
         (r.wpm ? '<span style="color:var(--muted)">' + r.wpm + " 词/分</span>" : "") +
         (flagged ? '<span class="badge danger">' + flagged + " 处待改</span>" : "") +
-        '<span class="sc">' + (r.scores ? "均分 " + avg : "未自评") + "</span></div>";
+        '<span class="sc">' + (r.scores ? "均分 " + avg : "未自评") + "</span>" +
+        '<button class="btn sm danger" data-hist-del="' + i + '" title="删除这条记录' + (r.audioId ? "及其录音" : "") + '">删除</button>' +
+        "</div>";
     }).join("");
+    $$("#histList [data-hist-del]").forEach(b => b.addEventListener("click", async () => {
+      const idx = +b.dataset.histDel;
+      const l = loadLog();
+      const r = l[idx];
+      if (!r) return;
+      if (!confirm("删除这条练习记录？" + (r.audioId ? "它附带的录音也会一并删除。" : "") + "此操作不可撤销。")) return;
+      if (r.audioId) { try { await idbDel(r.audioId); } catch (e) { /* 录音可能已被清空 */ } }
+      l.splice(idx, 1); saveLog(l);
+      renderReview(); renderKpi(); toast("已删除该条记录");
+    }));
   }
 
   function renderWeak() {
@@ -1086,8 +1142,44 @@
   });
   $("#btnClearHist").addEventListener("click", () => {
     if (!loadLog().length) return;
-    if (!confirm("确定清空全部练习历史？此操作不可撤销。")) return;
+    if (!confirm("确定清空全部练习历史？此操作不可撤销。\n注意：Part 2 录音不会被一起清空，如需一并删除请用下方「删除全部录音」。")) return;
     saveLog([]); renderReview(); renderKpi(); toast("已清空练习历史");
+  });
+
+  /* ======================= 数据与隐私 ======================= */
+  async function refreshStoreStat() {
+    const el = $("#storeStat");
+    if (!el) return;
+    const st = await idbStats();
+    const lb = loadLog().length, wb = loadWb().length;
+    const audio = st ? st.count + " 段录音（" + fmtBytes(st.bytes) + "）" : "录音存储不可用";
+    el.textContent = lb + " 条记录 · " + wb + " 词 · " + audio;
+  }
+  $("#btnClearAudio").addEventListener("click", async () => {
+    const st = await idbStats();
+    if (!st || !st.count) { toast("没有可删除的录音"); return; }
+    if (!confirm("删除全部 " + st.count + " 段录音（约 " + fmtBytes(st.bytes) + "）？此操作不可撤销。\n练习记录与自评会保留。")) return;
+    const n = await idbClearAll();
+    toast("已删除 " + n + " 段录音");
+    refreshStoreStat();
+  });
+  $("#btnClearAll").addEventListener("click", async () => {
+    if (!confirm("清除全部本机数据（练习记录、自评、生词本、偏好设置、API Key、全部录音）？\n此操作不可撤销，且会清除后无法找回。")) return;
+    if (!confirm("再次确认：真的要清除全部数据吗？")) return;
+    await idbClearAll();
+    [LKEY, WKEY, SKEY, "im_llm", "im_sessions"].forEach(k => { try { LS.removeItem(k); } catch (e) {} });
+    SET = Object.assign({}, DEF_SET);          /* 重置内存中的设置 */
+    sessions = 0;                              /* 重置累计计数 */
+    window.IELTS_LLM.save({ provider: "local", baseUrl: "", apiKey: "", model: "" });  /* 重置内存中的 Key 缓存 */
+    /* 让练习面板回到干净状态，避免残留一个已清空数据的话题 */
+    if ($("#practiceDetail")) $("#practiceDetail").classList.add("hidden");
+    if ($("#drawResult")) $("#drawResult").style.display = "none";
+    if ($("#btnDrawAgain")) $("#btnDrawAgain").style.display = "none";
+    drawn = null; CONV.topic = null; CONV.saved = false;
+    renderEngineSettings(); renderVoiceSettings();
+    $("#optMockRecord").checked = !!SET.mockRecord;
+    renderReview(); renderKpi(); renderPill();
+    toast("已清除全部本机数据");
   });
 
   /* CSV 导出 */

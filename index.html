@@ -193,6 +193,61 @@
   .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   .toast{position:fixed;left:50%;bottom:32px;transform:translateX(-50%);background:#12312e;color:#e6fbf7;padding:10px 20px;border-radius:10px;font-size:14px;z-index:999;opacity:0;transition:opacity .25s;pointer-events:none}
   .toast.show{opacity:1}
+
+  /* ==================== 移动端适配 ==================== */
+  html{-webkit-text-size-adjust:100%}
+  .btn,.tab-btn,.fchip,.mic-btn{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+  code{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:var(--teal-light);padding:1px 5px;border-radius:4px;color:var(--teal)}
+
+  @media(max-width:700px){
+    .wrap{padding:0 16px}
+    main{padding:18px 0 46px}
+    h1{font-size:21px}
+    h2{font-size:16.5px}
+    .sub{font-size:13.5px;margin-bottom:16px}
+    .card{padding:16px 15px;margin-bottom:13px}
+
+    /* 导航：隐藏文字 logo 与重复的计数胶囊，让 5 个标签在窄屏尽量一屏可达 */
+    .nav{height:56px;gap:3px}
+    .logo{font-size:0;margin-right:6px}
+    .logo .dot{width:9px;height:9px}
+    .tab-btn{padding:9px 10px;font-size:13.5px}
+    .nav .score-pill{font-size:11.5px;padding:3px 9px}
+
+    /* 触控目标不小于 ~40px */
+    .btn{padding:11px 16px;font-size:14.5px}
+    .btn.sm{padding:9px 13px;font-size:13px}
+    .mic-btn{width:46px;min-height:42px}
+
+    /* 表单：16px 可避免 iOS 聚焦时自动放大页面 */
+    .field input,.field select,#libSearch,.txt,.tarea,#simNotes{font-size:16px}
+    #simNotes,.tarea{min-height:96px}
+
+    /* 布局降级为单列 */
+    .slider-row{flex-wrap:wrap;gap:6px 10px;margin-bottom:14px}
+    .slider-row label{width:auto;flex:1 1 100%;font-size:12.5px}
+    .slider-row .val{width:34px}
+    .stage-pill{flex:1 1 calc(50% - 3px);min-width:calc(50% - 3px);font-size:12px;padding:9px 8px}
+    .wb-item{flex-wrap:wrap;gap:6px 8px}
+    .wb-item .w{min-width:auto;flex:1 1 100%}
+    .hist-item{font-size:12.5px;gap:6px;padding:10px 0}
+    .note-li{font-size:13px}
+    .chat-box{height:min(340px,56vh);padding:13px}
+    .msg{max-width:92%}
+    footer{padding:16px 0;font-size:12px}
+  }
+
+  @media(max-width:560px){
+    .wrap{padding:0 13px}
+    .nav .score-pill{display:none}
+    h1{font-size:19.5px}
+    .tab-btn{padding:9px 8px;font-size:13px}
+  }
+
+  @media(max-width:400px){
+    .stage-pill{flex:1 1 100%;min-width:100%}
+    .card{padding:14px 12px}
+  }
 </style>
 </head>
 <body>
@@ -592,6 +647,23 @@
         <button class="btn sm danger" id="btnWbClear">清空</button>
       </div>
       <div id="wordbookList"></div>
+    </div>
+
+    <div class="card">
+      <h2>数据与隐私 <span class="badge gray" id="storeStat">统计中…</span></h2>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
+        <b>全部数据只存在这台设备的浏览器里</b>，不会上传到任何服务器，也不会有第二个人看到。清除后无法恢复。
+      </p>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.95">
+        · 练习记录 / 自评 / 生词本 / 偏好设置 → 浏览器 localStorage（键名 <code>im_log</code>、<code>im_wordbook</code>、<code>im_settings</code>）<br>
+        · 大模型 API Key（仅在你自己填写后存在）→ 浏览器 localStorage（键名 <code>im_llm</code>），请求由本机浏览器直发你选的服务商<br>
+        · Part 2 录音 → 浏览器 IndexedDB（库 <code>ielts-oral-buddy</code> → 表 <code>recordings</code>）<br>
+        · 保存期限：<b>无限期</b>——除非你在下方主动删除，或自行清除浏览器站点数据
+      </div>
+      <div class="row">
+        <button class="btn sm danger" id="btnClearAudio">🗑 删除全部录音</button>
+        <button class="btn sm danger" id="btnClearAll">⚠ 清除全部本机数据</button>
+      </div>
     </div>
   </section>
 
