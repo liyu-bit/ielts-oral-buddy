@@ -7,6 +7,7 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎤</text></svg>">
 <style>
   :root{
+    /* ---- 颜色 ---- */
     --bg:#f5f7f8; --card:#ffffff; --ink:#1c2b2a; --muted:#6b7a78;
     --teal:#0f766e; --teal-dark:#0c5f58; --teal-light:#e0f2ef; --teal-border:#b8ddd7;
     --blue:#1d4ed8; --blue-light:#e8eefc;
@@ -14,239 +15,246 @@
     --danger:#b91c1c; --danger-light:#fdeaea;
     --ok:#15803d; --ok-light:#e5f5ea;
     --purple:#6d28d9; --purple-light:#f1e9fe;
-    --radius:12px; --shadow:0 1px 3px rgba(20,40,40,.08);
+    /* ---- 字号阶梯：5 档 ---- */
+    --fs-display:28px;  /* 页面主标题 / 计时器 / 核心数字 */
+    --fs-title:20px;    /* 区块标题 / 次级数字 */
+    --fs-lead:15px;     /* 卡片小标题 / 需要突出的正文 */
+    --fs-body:13px;     /* 正文（全站默认） */
+    --fs-note:12px;     /* 辅助说明 / 徽章 / 元信息 */
+    /* ---- 间距：4px 栅格 ---- */
+    --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-6:24px; --sp-8:32px; --sp-12:48px;
+    /* ---- 圆角：3 档 + 行内微圆角 ---- */
+    --r-sm:8px; --r-md:12px; --r-full:999px; --r-xs:4px;
+    /* ---- 其它 ---- */
+    --radius:var(--r-md); --shadow:0 1px 3px rgba(20,40,40,.08);
   }
   *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6}
-  .wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+  body{font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:var(--fs-body);line-height:1.6}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 var(--sp-6)}
 
   /* ===== 导航 ===== */
   header{background:var(--card);border-bottom:1px solid var(--teal-border);position:sticky;top:0;z-index:50}
-  .nav{display:flex;align-items:center;gap:6px;height:60px;flex-wrap:nowrap;overflow-x:auto}
-  .logo{font-weight:700;font-size:17px;color:var(--teal);margin-right:14px;display:flex;align-items:center;gap:8px;white-space:nowrap}
+  .nav{display:flex;align-items:center;gap:var(--sp-2);height:60px;flex-wrap:nowrap;overflow-x:auto}
+  .logo{font-weight:700;font-size:var(--fs-lead);color:var(--teal);margin-right:var(--sp-4);display:flex;align-items:center;gap:var(--sp-2);white-space:nowrap}
   .logo .dot{width:10px;height:10px;border-radius:50%;background:var(--teal);display:inline-block}
-  .tab-btn{border:none;background:none;padding:8px 14px;border-radius:8px;font-size:14.5px;color:var(--muted);cursor:pointer;font-weight:500;white-space:nowrap}
+  .tab-btn{border:none;background:none;padding:var(--sp-2) var(--sp-3);border-radius:var(--r-sm);font-size:var(--fs-body);color:var(--muted);cursor:pointer;font-weight:500;white-space:nowrap}
   .tab-btn:hover{background:var(--teal-light);color:var(--teal)}
   .tab-btn.active{background:var(--teal);color:#fff}
-  .nav .score-pill{margin-left:auto;font-size:13px;color:var(--muted);background:var(--teal-light);padding:4px 12px;border-radius:999px;white-space:nowrap}
+  .nav .score-pill{margin-left:auto;font-size:var(--fs-note);color:var(--muted);background:var(--teal-light);padding:var(--sp-1) var(--sp-3);border-radius:var(--r-full);white-space:nowrap}
 
-  main{padding:26px 0 60px}
+  main{padding:var(--sp-6) 0 var(--sp-12)}
   .page{display:none}
   .page.active{display:block}
 
-  h1{font-size:25px;margin-bottom:6px}
-  h2{font-size:18px;margin-bottom:10px}
-  h3{font-size:15px;margin-bottom:6px}
-  .sub{color:var(--muted);font-size:14px;margin-bottom:22px}
+  h1{font-size:clamp(24px,4.5vw,var(--fs-display));margin-bottom:var(--sp-2)}
+  h2{font-size:var(--fs-title);margin-bottom:var(--sp-3)}
+  h3{font-size:var(--fs-lead);margin-bottom:var(--sp-2)}
+  .sub{color:var(--muted);font-size:var(--fs-body);margin-bottom:var(--sp-6)}
 
   /* ===== 卡片 / 布局 ===== */
-  .card{background:var(--card);border:1px solid var(--teal-border);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px 22px;margin-bottom:16px}
-  .grid{display:grid;gap:16px}
+  .card{background:var(--card);border:1px solid var(--teal-border);border-radius:var(--radius);box-shadow:var(--shadow);padding:var(--sp-4) var(--sp-6);margin-bottom:var(--sp-4)}
+  .grid{display:grid;gap:var(--sp-4)}
   .grid-4{grid-template-columns:repeat(4,1fr)}
   .grid-3{grid-template-columns:repeat(3,1fr)}
   .grid-2{grid-template-columns:repeat(2,1fr)}
-  .layout{display:grid;grid-template-columns:1.15fr 1fr;gap:18px;align-items:start}
+  .layout{display:grid;grid-template-columns:1.15fr 1fr;gap:var(--sp-4);align-items:start}
   @media(max-width:960px){.grid-4,.grid-3,.grid-2,.layout{grid-template-columns:1fr}}
 
-  .stat-card{background:var(--card);border:1px solid var(--teal-border);border-radius:var(--radius);padding:16px 18px}
-  .stat-card .label{font-size:13px;color:var(--muted)}
-  .stat-card .num{font-size:24px;font-weight:700;color:var(--teal);margin-top:2px}
+  .stat-card{background:var(--card);border:1px solid var(--teal-border);border-radius:var(--radius);padding:var(--sp-4)}
+  .stat-card .label{font-size:var(--fs-note);color:var(--muted)}
+  .stat-card .num{font-size:var(--fs-display);font-weight:700;color:var(--teal);margin-top:var(--sp-1)}
 
   .btn{display:inline-block;border:1px solid var(--teal-border);background:var(--card);color:var(--teal);
-    padding:9px 18px;border-radius:9px;font-size:14px;cursor:pointer;font-weight:500;transition:all .15s;font-family:inherit}
+    padding:var(--sp-2) var(--sp-4);border-radius:var(--r-sm);font-size:var(--fs-body);cursor:pointer;font-weight:500;transition:all .15s;font-family:inherit}
   .btn:hover{background:var(--teal-light)}
   .btn.primary{background:var(--teal);color:#fff;border-color:var(--teal)}
   .btn.primary:hover{background:var(--teal-dark)}
-  .btn.big{font-size:16px;padding:12px 30px}
-  .btn.sm{font-size:12.5px;padding:5px 12px}
+  .btn.big{font-size:var(--fs-lead);padding:var(--sp-3) var(--sp-8)}
+  .btn.sm{font-size:var(--fs-note);padding:var(--sp-1) var(--sp-3)}
   .btn:disabled{opacity:.45;cursor:not-allowed}
   .btn.ghost{border-color:transparent;background:transparent;color:var(--muted)}
   .btn.ghost:hover{background:var(--teal-light);color:var(--teal)}
   .btn.danger{color:var(--danger);border-color:#eecfcf}
   .btn.danger:hover{background:var(--danger-light)}
 
-  .badge{display:inline-block;font-size:12px;padding:2px 10px;border-radius:999px;background:var(--teal-light);color:var(--teal);margin-right:6px;white-space:nowrap}
+  .badge{display:inline-block;font-size:var(--fs-note);padding:2px var(--sp-2);border-radius:var(--r-full);background:var(--teal-light);color:var(--teal);margin-right:var(--sp-2);white-space:nowrap}
   .badge.blue{background:var(--blue-light);color:var(--blue)}
   .badge.amber{background:var(--amber-light);color:var(--amber)}
   .badge.gray{background:#eef1f1;color:var(--muted)}
   .badge.purple{background:var(--purple-light);color:var(--purple)}
   .badge.danger{background:var(--danger-light);color:var(--danger)}
 
-  .notice{border-radius:var(--radius);padding:14px 18px;margin-bottom:16px;font-size:14px;display:flex;gap:12px;align-items:flex-start}
+  .notice{border-radius:var(--radius);padding:var(--sp-3) var(--sp-4);margin-bottom:var(--sp-4);font-size:var(--fs-body);display:flex;gap:var(--sp-3);align-items:flex-start}
   .notice.info{background:var(--blue-light);color:#1e3a8a;border:1px solid #c9d8f7}
   .notice.warn{background:var(--amber-light);color:var(--amber);border:1px solid #f2ddb5}
   .notice.teal{background:var(--teal-light);color:var(--teal);border:1px solid var(--teal-border)}
 
   /* ===== 抽题筛选 ===== */
-  .filter-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;text-align:left}
-  .filter-label{font-size:13px;color:var(--muted);width:52px;flex-shrink:0;padding-top:5px}
-  .chips{display:flex;flex-wrap:wrap;gap:6px;flex:1}
-  .fchip{font-size:13px;padding:4px 12px;border-radius:999px;border:1px solid var(--teal-border);background:var(--card);color:var(--muted);cursor:pointer;user-select:none}
+  .filter-row{display:flex;align-items:flex-start;gap:var(--sp-2);margin-bottom:var(--sp-3);text-align:left}
+  .filter-label{font-size:var(--fs-note);color:var(--muted);width:52px;flex-shrink:0;padding-top:var(--sp-1)}
+  .chips{display:flex;flex-wrap:wrap;gap:var(--sp-2);flex:1}
+  .fchip{font-size:var(--fs-body);padding:var(--sp-1) var(--sp-3);border-radius:var(--r-full);border:1px solid var(--teal-border);background:var(--card);color:var(--muted);cursor:pointer;user-select:none}
   .fchip:hover{border-color:var(--teal)}
   .fchip.on{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:500}
-  .drawn-card{border:1px dashed var(--teal);border-radius:10px;padding:16px;background:var(--teal-light);text-align:left}
-  .drawn-q{font-size:15.5px;font-weight:500;margin-top:6px;color:var(--ink);line-height:1.5}
+  .drawn-card{border:1px dashed var(--teal);border-radius:var(--r-md);padding:var(--sp-4);background:var(--teal-light);text-align:left}
+  .drawn-q{font-size:var(--fs-lead);font-weight:500;margin-top:var(--sp-2);color:var(--ink);line-height:1.5}
 
   /* ===== 话题详情 ===== */
-  .cue-card{background:#fff;border:2px solid var(--teal);border-radius:var(--radius);padding:24px;position:relative}
-  .cue-card::before{content:"PART 2 · CUE CARD";position:absolute;top:-11px;left:20px;background:var(--teal);color:#fff;font-size:11px;padding:2px 12px;border-radius:99px;letter-spacing:.5px}
+  .cue-card{background:#fff;border:2px solid var(--teal);border-radius:var(--radius);padding:var(--sp-6);position:relative}
+  .cue-card::before{content:"PART 2 · CUE CARD";position:absolute;top:-11px;left:var(--sp-6);background:var(--teal);color:#fff;font-size:var(--fs-note);padding:2px var(--sp-3);border-radius:var(--r-full);letter-spacing:.5px}
   .cue-card.no-label::before{display:none}
-  .cue-card ul{margin:10px 0 0 20px;font-size:15px}
-  .vocab-line{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-  .vocab-item{background:var(--blue-light);color:var(--blue);font-size:13px;padding:5px 12px;border-radius:8px;cursor:pointer;transition:all .12s;display:inline-flex;align-items:center;gap:6px}
+  .cue-card ul{margin:var(--sp-3) 0 0 20px;font-size:var(--fs-lead)}
+  .vocab-line{display:flex;flex-wrap:wrap;gap:var(--sp-2);margin-top:var(--sp-2)}
+  .vocab-item{background:var(--blue-light);color:var(--blue);font-size:var(--fs-body);padding:var(--sp-1) var(--sp-3);border-radius:var(--r-sm);cursor:pointer;transition:all .12s;display:inline-flex;align-items:center;gap:var(--sp-2)}
   .vocab-item:hover{background:#d7e3fa}
-  .vocab-item i{font-style:normal;color:var(--muted);margin-left:4px;font-size:12px}
-  .vocab-item .plus{font-size:11px;color:var(--teal);border:1px solid var(--teal-border);border-radius:50%;width:15px;height:15px;display:inline-flex;align-items:center;justify-content:center;background:#fff}
-  .expr-li{padding:9px 0 9px 14px;border-left:3px solid var(--teal-border);margin-bottom:6px;font-size:14px;cursor:pointer;transition:all .12s}
+  .vocab-item i{font-style:normal;color:var(--muted);margin-left:var(--sp-1);font-size:var(--fs-note)}
+  .vocab-item .plus{font-size:var(--fs-note);line-height:1;color:var(--teal);border:1px solid var(--teal-border);border-radius:50%;width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;background:#fff}
+  .expr-li{padding:var(--sp-2) 0 var(--sp-2) var(--sp-4);border-left:3px solid var(--teal-border);margin-bottom:var(--sp-2);font-size:var(--fs-body);cursor:pointer;transition:all .12s}
   .expr-li:hover{border-left-color:var(--teal);background:var(--teal-light)}
-  .expr-li small{display:block;color:var(--muted);font-size:12px;margin-top:1px}
-  .qlist-item{padding:9px 12px;border-radius:8px;margin-bottom:6px;font-size:14.5px;background:var(--bg)}
+  .expr-li small{display:block;color:var(--muted);font-size:var(--fs-note);margin-top:2px}
+  .qlist-item{padding:var(--sp-2) var(--sp-3);border-radius:var(--r-sm);margin-bottom:var(--sp-2);font-size:var(--fs-body);background:var(--bg)}
   .qlist-item.hot{background:var(--teal-light);border-left:3px solid var(--teal);font-weight:500}
 
   /* ===== 对话 ===== */
-  .chat-box{height:340px;overflow-y:auto;background:#fafcfc;border:1px solid var(--teal-border);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:10px}
-  .msg{max-width:84%;padding:10px 14px;border-radius:14px;font-size:14px;white-space:pre-wrap;word-break:break-word}
-  .msg.ai{background:var(--teal-light);border-bottom-left-radius:4px;align-self:flex-start}
-  .msg.me{background:var(--blue);color:#fff;border-bottom-right-radius:4px;align-self:flex-end}
-  .msg.sys{background:var(--amber-light);color:var(--amber);font-size:12.5px;align-self:center;max-width:95%;text-align:center;border-radius:8px}
-  .msg .who{font-size:11px;color:var(--muted);margin-bottom:2px}
-  .chat-input-row{display:flex;gap:8px;margin-top:12px}
-  .chat-input-row input{flex:1;border:1px solid var(--teal-border);border-radius:9px;padding:10px 14px;font-size:14px;outline:none;font-family:inherit}
+  .chat-box{height:340px;overflow-y:auto;background:#fafcfc;border:1px solid var(--teal-border);border-radius:var(--radius);padding:var(--sp-4);display:flex;flex-direction:column;gap:var(--sp-3)}
+  .msg{max-width:84%;padding:var(--sp-2) var(--sp-3);border-radius:var(--r-md);font-size:var(--fs-body);white-space:pre-wrap;word-break:break-word}
+  .msg.ai{background:var(--teal-light);border-bottom-left-radius:var(--r-xs);align-self:flex-start}
+  .msg.me{background:var(--blue);color:#fff;border-bottom-right-radius:var(--r-xs);align-self:flex-end}
+  .msg.sys{background:var(--amber-light);color:var(--amber);font-size:var(--fs-note);align-self:center;max-width:95%;text-align:center;border-radius:var(--r-sm)}
+  .msg .who{font-size:var(--fs-note);color:var(--muted);margin-bottom:2px}
+  .chat-input-row{display:flex;gap:var(--sp-2);margin-top:var(--sp-3)}
+  .chat-input-row input{flex:1;min-width:0;border:1px solid var(--teal-border);border-radius:var(--r-sm);padding:var(--sp-2) var(--sp-3);font-size:var(--fs-body);outline:none;font-family:inherit}
   .chat-input-row input:focus{border-color:var(--teal)}
-  .mic-btn{width:46px;border:1px solid var(--teal-border);background:var(--card);border-radius:9px;cursor:pointer;font-size:17px}
+  .mic-btn{width:46px;border:1px solid var(--teal-border);background:var(--card);border-radius:var(--r-sm);cursor:pointer;font-size:16px;line-height:1}
   .mic-btn.rec{background:var(--danger-light);border-color:var(--danger);animation:pulse 1s infinite}
   @keyframes pulse{50%{opacity:.6}}
-  .think{font-size:12px;color:var(--muted);font-style:italic}
+  .think{font-size:var(--fs-note);color:var(--muted);font-style:italic}
 
   /* ===== 三档升级 ===== */
-  .tier{border:1px solid var(--teal-border);border-radius:10px;padding:14px 16px;margin-bottom:10px;background:#fbfdfd}
+  .tier{border:1px solid var(--teal-border);border-radius:var(--r-md);padding:var(--sp-3) var(--sp-4);margin-bottom:var(--sp-3);background:#fbfdfd}
   .tier.b6{border-left:4px solid #94a3b8}
   .tier.b7{border-left:4px solid var(--teal)}
   .tier.b8{border-left:4px solid var(--purple)}
-  .tier .thead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;flex-wrap:wrap}
-  .tier .tname{font-weight:600;font-size:14.5px}
-  .tier .tdesc{font-size:12.5px;color:var(--muted);margin-bottom:8px}
-  .tier .ttext{font-size:14.5px;line-height:1.75}
-  .df-add{background:#dcfce7;color:#14532d;text-decoration:none;border-radius:3px;padding:0 2px}
-  .df-del{background:#fee2e2;color:#7f1d1d;border-radius:3px;padding:0 2px}
-  .change-li{font-size:13px;padding:6px 0;border-bottom:1px dashed var(--teal-border);display:flex;gap:8px;flex-wrap:wrap;align-items:baseline}
+  .tier .thead{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-2);margin-bottom:var(--sp-2);flex-wrap:wrap}
+  .tier .tname{font-weight:600;font-size:var(--fs-lead)}
+  .tier .tdesc{font-size:var(--fs-note);color:var(--muted);margin-bottom:var(--sp-2)}
+  .tier .ttext{font-size:var(--fs-lead);line-height:1.75}
+  .df-add{background:#dcfce7;color:#14532d;text-decoration:none;border-radius:var(--r-xs);padding:0 2px}
+  .df-del{background:#fee2e2;color:#7f1d1d;border-radius:var(--r-xs);padding:0 2px}
+  .change-li{font-size:var(--fs-body);padding:var(--sp-2) 0;border-bottom:1px dashed var(--teal-border);display:flex;gap:var(--sp-2);flex-wrap:wrap;align-items:baseline}
   .change-li:last-child{border-bottom:none}
   .chg-from{color:var(--danger);text-decoration:line-through}
   .chg-to{color:var(--ok);font-weight:600}
 
   /* ===== 计分 / 结果 ===== */
-  .flu-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0}
+  .flu-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--sp-3);margin:var(--sp-3) 0}
   @media(max-width:700px){.flu-grid{grid-template-columns:repeat(2,1fr)}}
-  .flu-grid .f{background:var(--bg);border-radius:9px;padding:10px 6px;text-align:center}
-  .flu-grid .f .n{font-size:20px;font-weight:700;color:var(--teal)}
-  .flu-grid .f .l{font-size:12px;color:var(--muted)}
-  .slider-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-  .slider-row label{width:180px;font-size:13px;color:var(--muted);flex-shrink:0}
+  .flu-grid .f{background:var(--bg);border-radius:var(--r-sm);padding:var(--sp-3) var(--sp-2);text-align:center}
+  .flu-grid .f .n{font-size:var(--fs-title);font-weight:700;color:var(--teal)}
+  .flu-grid .f .l{font-size:var(--fs-note);color:var(--muted)}
+  .slider-row{display:flex;align-items:center;gap:var(--sp-3);margin-bottom:var(--sp-3)}
+  .slider-row label{width:180px;font-size:var(--fs-body);color:var(--muted);flex-shrink:0}
   .slider-row input[type=range]{flex:1;accent-color:var(--teal)}
   .slider-row .val{width:38px;font-weight:700;color:var(--teal);text-align:right}
-  .sim-timer{font-size:36px;font-weight:700;color:var(--teal);text-align:center;font-variant-numeric:tabular-nums;margin:6px 0}
+  .sim-timer{font-size:var(--fs-display);font-weight:700;color:var(--teal);text-align:center;font-variant-numeric:tabular-nums;margin:var(--sp-2) 0}
   .sim-timer.warn{color:var(--danger)}
-  .sim-stage{font-size:13px;color:var(--muted);text-align:center}
-  #simNotes,.tarea{width:100%;min-height:80px;border:1px solid var(--teal-border);border-radius:9px;padding:10px 12px;font-size:14px;margin:10px 0;font-family:inherit;outline:none;resize:vertical}
+  .sim-stage{font-size:var(--fs-note);color:var(--muted);text-align:center}
+  #simNotes,.tarea{width:100%;min-height:80px;border:1px solid var(--teal-border);border-radius:var(--r-sm);padding:var(--sp-2) var(--sp-3);font-size:var(--fs-body);margin:var(--sp-3) 0;font-family:inherit;outline:none;resize:vertical}
   #simNotes:focus,.tarea:focus{border-color:var(--teal)}
-  .rec-dot{display:inline-flex;align-items:center;gap:7px;color:var(--danger);font-weight:600;font-size:14px;justify-content:center;width:100%}
+  .rec-dot{display:inline-flex;align-items:center;gap:var(--sp-2);color:var(--danger);font-weight:600;font-size:var(--fs-body);justify-content:center;width:100%}
   .rec-dot::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--danger);animation:pulse 1s infinite}
-  .hist-item{font-size:13px;padding:9px 0;border-bottom:1px dashed var(--teal-border);display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+  .hist-item{font-size:var(--fs-body);padding:var(--sp-2) 0;border-bottom:1px dashed var(--teal-border);display:flex;justify-content:space-between;gap:var(--sp-2);align-items:center;flex-wrap:wrap}
   .hist-item:last-child{border-bottom:none}
   .hist-item .sc{color:var(--teal);font-weight:600}
 
   /* ===== 题库 / 列表 ===== */
-  #libSearch,.txt{width:100%;border:1px solid var(--teal-border);border-radius:9px;padding:9px 14px;font-size:14px;outline:none;margin-top:6px;font-family:inherit}
+  #libSearch,.txt{width:100%;border:1px solid var(--teal-border);border-radius:var(--r-sm);padding:var(--sp-2) var(--sp-3);font-size:var(--fs-body);outline:none;margin-top:var(--sp-2);font-family:inherit}
   #libSearch:focus,.txt:focus{border-color:var(--teal)}
-  .lib-group{font-size:13px;color:var(--muted);margin:14px 0 6px;font-weight:500}
-  .lib-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--teal-border);border-radius:9px;margin-bottom:7px;cursor:pointer;transition:all .12s}
+  .lib-group{font-size:var(--fs-note);color:var(--muted);margin:var(--sp-4) 0 var(--sp-2);font-weight:500}
+  .lib-item{display:flex;justify-content:space-between;align-items:center;gap:var(--sp-3);padding:var(--sp-3);border:1px solid var(--teal-border);border-radius:var(--r-sm);margin-bottom:var(--sp-2);cursor:pointer;transition:all .12s}
   .lib-item:hover{background:var(--teal-light);border-color:var(--teal)}
-  .lib-item .t{font-size:14px;font-weight:500}
-  .lib-item .m{font-size:12px;color:var(--muted);margin-top:2px}
+  .lib-item .t{font-size:var(--fs-body);font-weight:500}
+  .lib-item .m{font-size:var(--fs-note);color:var(--muted);margin-top:2px}
 
   /* ===== 套题流程条 ===== */
-  .stage-bar{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
-  .stage-pill{flex:1;min-width:110px;border:1px solid var(--teal-border);border-radius:9px;padding:8px 10px;font-size:12.5px;color:var(--muted);background:var(--card);text-align:center}
+  .stage-bar{display:flex;gap:var(--sp-2);margin-bottom:var(--sp-4);flex-wrap:wrap}
+  .stage-pill{flex:1;min-width:110px;border:1px solid var(--teal-border);border-radius:var(--r-sm);padding:var(--sp-2) var(--sp-3);font-size:var(--fs-note);color:var(--muted);background:var(--card);text-align:center}
   .stage-pill.done{background:var(--ok-light);border-color:#bfe3cb;color:var(--ok)}
   .stage-pill.on{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:600}
-  .stage-pill .k{display:block;font-size:11px;opacity:.85}
+  .stage-pill .k{display:block;font-size:var(--fs-note);opacity:.85}
 
   /* ===== 生词本 / 薄弱点 ===== */
-  .wb-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dashed var(--teal-border);font-size:14px}
+  .wb-item{display:flex;align-items:center;gap:var(--sp-3);padding:var(--sp-2) 0;border-bottom:1px dashed var(--teal-border);font-size:var(--fs-body)}
   .wb-item:last-child{border-bottom:none}
   .wb-item .w{font-weight:600;color:var(--blue);min-width:140px}
-  .wb-item .z{color:var(--muted);font-size:13px;flex:1}
-  .note-li{font-size:13.5px;padding:8px 0;border-bottom:1px dashed var(--teal-border);display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+  .wb-item .z{color:var(--muted);font-size:var(--fs-note);flex:1}
+  .note-li{font-size:var(--fs-body);padding:var(--sp-2) 0;border-bottom:1px dashed var(--teal-border);display:flex;gap:var(--sp-3);align-items:baseline;flex-wrap:wrap}
   .note-li:last-child{border-bottom:none}
-  .bar-wrap{height:8px;background:var(--bg);border-radius:99px;overflow:hidden;flex:1;min-width:80px}
-  .bar{height:100%;background:var(--teal);border-radius:99px}
+  .bar-wrap{height:8px;background:var(--bg);border-radius:var(--r-full);overflow:hidden;flex:1;min-width:80px}
+  .bar{height:100%;background:var(--teal);border-radius:var(--r-full)}
 
-  .field{margin-bottom:12px}
-  .field label{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
-  .field input,.field select{width:100%;border:1px solid var(--teal-border);border-radius:9px;padding:9px 12px;font-size:14px;outline:none;font-family:inherit;background:#fff}
+  .field{margin-bottom:var(--sp-3)}
+  .field label{display:block;font-size:var(--fs-body);color:var(--muted);margin-bottom:var(--sp-1)}
+  .field input,.field select{width:100%;border:1px solid var(--teal-border);border-radius:var(--r-sm);padding:var(--sp-2) var(--sp-3);font-size:var(--fs-body);outline:none;font-family:inherit;background:#fff}
   .field input:focus,.field select:focus{border-color:var(--teal)}
 
-  footer{border-top:1px solid var(--teal-border);background:var(--card);padding:20px 0;text-align:center;font-size:13px;color:var(--muted)}
+  footer{border-top:1px solid var(--teal-border);background:var(--card);padding:var(--sp-6) 0;text-align:center;font-size:var(--fs-note);color:var(--muted)}
 
   .hidden{display:none!important}
-  .mt8{margin-top:8px}.mt16{margin-top:16px}.mb16{margin-bottom:16px}
-  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-  .toast{position:fixed;left:50%;bottom:32px;transform:translateX(-50%);background:#12312e;color:#e6fbf7;padding:10px 20px;border-radius:10px;font-size:14px;z-index:999;opacity:0;transition:opacity .25s;pointer-events:none}
+  .mt8{margin-top:var(--sp-2)}.mt16{margin-top:var(--sp-4)}.mb16{margin-bottom:var(--sp-4)}
+  .row{display:flex;gap:var(--sp-2);align-items:center;flex-wrap:wrap}
+  .toast{position:fixed;left:50%;bottom:var(--sp-8);transform:translateX(-50%);background:#12312e;color:#e6fbf7;padding:var(--sp-3) var(--sp-6);border-radius:var(--r-md);font-size:var(--fs-body);z-index:999;opacity:0;transition:opacity .25s;pointer-events:none}
   .toast.show{opacity:1}
 
   /* ==================== 移动端适配 ==================== */
   html{-webkit-text-size-adjust:100%}
   .btn,.tab-btn,.fchip,.mic-btn{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-  code{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:var(--teal-light);padding:1px 5px;border-radius:4px;color:var(--teal)}
+  code{font-family:ui-monospace,Consolas,monospace;font-size:var(--fs-note);background:var(--teal-light);padding:1px var(--sp-1);border-radius:var(--r-xs);color:var(--teal)}
 
   @media(max-width:700px){
-    .wrap{padding:0 16px}
-    main{padding:18px 0 46px}
-    h1{font-size:21px}
-    h2{font-size:16.5px}
-    .sub{font-size:13.5px;margin-bottom:16px}
-    .card{padding:16px 15px;margin-bottom:13px}
+    .wrap{padding:0 var(--sp-4)}
+    main{padding:var(--sp-4) 0 var(--sp-12)}
+    .sub{margin-bottom:var(--sp-4)}
+    .card{padding:var(--sp-4);margin-bottom:var(--sp-3)}
 
     /* 导航：隐藏文字 logo 与重复的计数胶囊，让 5 个标签在窄屏尽量一屏可达 */
-    .nav{height:56px;gap:3px}
-    .logo{font-size:0;margin-right:6px}
+    .nav{height:56px;gap:var(--sp-1)}
+    .logo{font-size:0;margin-right:var(--sp-2)}
     .logo .dot{width:9px;height:9px}
-    .tab-btn{padding:9px 10px;font-size:13.5px}
-    .nav .score-pill{font-size:11.5px;padding:3px 9px}
+    .tab-btn{padding:var(--sp-2) var(--sp-3);font-size:var(--fs-body)}
+    .nav .score-pill{font-size:var(--fs-note);padding:var(--sp-1) var(--sp-2)}
 
     /* 触控目标不小于 ~40px */
-    .btn{padding:11px 16px;font-size:14.5px}
-    .btn.sm{padding:9px 13px;font-size:13px}
+    .btn{padding:var(--sp-3) var(--sp-4)}
+    .btn.sm{padding:var(--sp-2) var(--sp-3);font-size:var(--fs-body)}
     .mic-btn{width:46px;min-height:42px}
 
     /* 表单：16px 可避免 iOS 聚焦时自动放大页面 */
-    .field input,.field select,#libSearch,.txt,.tarea,#simNotes{font-size:16px}
+    .field input,.field select,#libSearch,.txt,.tarea,#simNotes,#chatInput,#mockInput{font-size:16px}
     #simNotes,.tarea{min-height:96px}
 
     /* 布局降级为单列 */
-    .slider-row{flex-wrap:wrap;gap:6px 10px;margin-bottom:14px}
-    .slider-row label{width:auto;flex:1 1 100%;font-size:12.5px}
+    .slider-row{flex-wrap:wrap;gap:var(--sp-1) var(--sp-3);margin-bottom:var(--sp-4)}
+    .slider-row label{width:auto;flex:1 1 100%;font-size:var(--fs-note)}
     .slider-row .val{width:34px}
-    .stage-pill{flex:1 1 calc(50% - 3px);min-width:calc(50% - 3px);font-size:12px;padding:9px 8px}
-    .wb-item{flex-wrap:wrap;gap:6px 8px}
+    .stage-pill{flex:1 1 calc(50% - 4px);min-width:calc(50% - 4px);padding:var(--sp-2);font-size:var(--fs-note)}
+    .wb-item{flex-wrap:wrap;gap:var(--sp-1) var(--sp-2)}
     .wb-item .w{min-width:auto;flex:1 1 100%}
-    .hist-item{font-size:12.5px;gap:6px;padding:10px 0}
-    .note-li{font-size:13px}
-    .chat-box{height:min(340px,56vh);padding:13px}
+    .hist-item{font-size:var(--fs-note);gap:var(--sp-1);padding:var(--sp-3) 0}
+    .chat-box{height:min(340px,56vh);padding:var(--sp-3)}
     .msg{max-width:92%}
-    footer{padding:16px 0;font-size:12px}
+    footer{padding:var(--sp-4) 0}
   }
 
   @media(max-width:560px){
-    .wrap{padding:0 13px}
+    .wrap{padding:0 var(--sp-3)}
     .nav .score-pill{display:none}
-    h1{font-size:19.5px}
-    .tab-btn{padding:9px 8px;font-size:13px}
+    .tab-btn{padding:var(--sp-2)}
   }
 
   @media(max-width:400px){
     .stage-pill{flex:1 1 100%;min-width:100%}
-    .card{padding:14px 12px}
+    .card{padding:var(--sp-3)}
   }
 </style>
 </head>
@@ -283,29 +291,29 @@
     <div class="grid grid-3 mb16">
       <div class="card" style="margin-bottom:0">
         <h2>🎲 抽题练习</h2>
-        <p style="font-size:13.5px;color:var(--muted)">按题型 / 类别 / 场景 / 季节 / 难度五维筛选随机抽题。抽中 Part 2 自动开始计时。</p>
+        <p style="font-size:var(--fs-body);color:var(--muted)">按题型 / 类别 / 场景 / 季节 / 难度五维筛选随机抽题。抽中 Part 2 自动开始计时。</p>
         <button class="btn primary mt16" data-goto="practice">开始抽题</button>
       </div>
       <div class="card" style="margin-bottom:0">
         <h2>🎯 套题模考</h2>
-        <p style="font-size:13.5px;color:var(--muted)">一键生成 Part 1 + Part 2 + Part 3 完整一套，按真实考试顺序与时间推进。</p>
+        <p style="font-size:var(--fs-body);color:var(--muted)">一键生成 Part 1 + Part 2 + Part 3 完整一套，按真实考试顺序与时间推进。</p>
         <button class="btn primary mt16" data-goto="mock">生成一套题</button>
       </div>
       <div class="card" style="margin-bottom:0">
         <h2>📈 复盘与生词本</h2>
-        <p style="font-size:13.5px;color:var(--muted)">练习历史、每题自评、复练次数、练得最少的话题类型、生词本整本朗读。</p>
+        <p style="font-size:var(--fs-body);color:var(--muted)">练习历史、每题自评、复练次数、练得最少的话题类型、生词本整本朗读。</p>
         <button class="btn primary mt16" data-goto="review">打开复盘</button>
       </div>
     </div>
 
     <div class="card">
       <h2>🤖 AI 考官引擎 <span class="badge" id="engineBadge">本地智能引擎</span></h2>
-      <p class="sub" style="margin-bottom:14px">
+      <p class="sub" style="margin-bottom:var(--sp-4)">
         默认使用内置的<b>本地智能考官引擎</b>：完全离线、无需配置，会根据你的回答动态追问、判断跑题、在 Part 3 自动升维。
         想让它更聪明（真正即兴、随机应变），可接入你自己的大模型 API Key —— Key 只保存在你本机浏览器，不会上传到任何服务器。
       </p>
 
-      <div class="notice warn" style="margin-bottom:14px">
+      <div class="notice warn" style="margin-bottom:var(--sp-4)">
         <div>🔐 <b>关于安全</b>：本项目是纯静态网页，没有自己的服务器，所以无法内置密钥。填入的 Key 仅写入本机 localStorage，由你的浏览器直接发往所选服务商；换设备或清除浏览器数据后需重新填写。不填也能完整使用全部功能。</div>
       </div>
 
@@ -332,7 +340,7 @@
             <button class="btn" id="btnLlmTest">测试连通性</button>
             <button class="btn ghost" id="btnLlmClear">清除</button>
           </div>
-          <p style="font-size:12.5px;color:var(--muted);margin-top:8px" id="llmHint"></p>
+          <p style="font-size:var(--fs-note);color:var(--muted);margin-top:var(--sp-2)" id="llmHint"></p>
         </div>
         <div>
           <h3>🗣 考官口音与语速</h3>
@@ -351,14 +359,14 @@
             <button class="btn sm" id="btnVoiceTest">▶ 试听考官声音</button>
             <button class="btn sm ghost" id="btnVoiceList">查看本机可用音色</button>
           </div>
-          <div id="voiceListBox" style="font-size:12.5px;color:var(--muted);margin-top:8px;max-height:120px;overflow:auto"></div>
+          <div id="voiceListBox" style="font-size:var(--fs-note);color:var(--muted);margin-top:var(--sp-2);max-height:120px;overflow:auto"></div>
 
           <h3 class="mt16">⚙ 练习偏好</h3>
-          <label class="row" style="font-size:13.5px;gap:8px;cursor:pointer">
+          <label class="row" style="font-size:var(--fs-body);gap:var(--sp-2);cursor:pointer">
             <input type="checkbox" id="optAutoTimer" checked>
             <span>抽中 Part 2 后自动开始 60 秒准备计时（抽题即计时）</span>
           </label>
-          <label class="row mt8" style="font-size:13.5px;gap:8px;cursor:pointer">
+          <label class="row mt8" style="font-size:var(--fs-body);gap:var(--sp-2);cursor:pointer">
             <input type="checkbox" id="optAutoSpeak" checked>
             <span>考官提问时自动朗读（关闭可只看文字）</span>
           </label>
@@ -373,7 +381,7 @@
       <h1>🎲 抽题练习</h1>
       <p class="sub">五维筛选限定范围 → 抽一个题面 → 直面 AI 考官。抽到 Part 2 会自动进入模拟并开始计时。</p>
 
-      <div class="card" style="text-align:center;padding:26px 22px">
+      <div class="card" style="text-align:center;padding:var(--sp-6)">
         <div class="filter-row"><span class="filter-label">题型</span><div class="chips" id="fPart">
           <span class="fchip on" data-v="all">全部</span>
           <span class="fchip" data-v="1">Part 1 · 问答</span>
@@ -394,8 +402,8 @@
           <span class="fchip" data-v="进阶">进阶</span>
         </div></div>
 
-        <p style="font-size:12.5px;color:var(--muted);margin-top:6px" id="poolInfo"></p>
-        <div style="margin-top:12px">
+        <p style="font-size:var(--fs-note);color:var(--muted);margin-top:var(--sp-2)" id="poolInfo"></p>
+        <div style="margin-top:var(--sp-3)">
           <button class="btn primary big" id="btnDraw">🎲 抽一个</button>
           <button class="btn" id="btnDrawAgain" style="display:none">换一个</button>
         </div>
@@ -412,7 +420,7 @@
 
       <div class="layout mt16">
         <div>
-          <div class="cue-card" id="dCue" style="margin-bottom:16px"></div>
+          <div class="cue-card" id="dCue" style="margin-bottom:var(--sp-4)"></div>
 
           <div class="card hidden" id="autoTimerCard">
             <h2>⏱ 抽题即计时 <span class="badge amber">自动开始</span></h2>
@@ -427,11 +435,11 @@
 
           <div class="card hidden" id="simWrap">
             <h2>Part 2 全真模拟 <span class="badge amber">录音 + 流利度</span></h2>
-            <p class="sub" style="margin-bottom:12px">60 秒准备（可记笔记）→ 2 分钟陈述（自动录音）→ 回放自听 + 流利度反馈 + 四维自评</p>
+            <p class="sub" style="margin-bottom:var(--sp-3)">60 秒准备（可记笔记）→ 2 分钟陈述（自动录音）→ 回放自听 + 流利度反馈 + 四维自评</p>
 
             <div id="simStart">
               <button class="btn primary big" id="btnSimStart">▶ 开始模拟</button>
-              <p class="sim-stage" style="margin-top:8px">找安静环境，全程只说英语。</p>
+              <p class="sim-stage" style="margin-top:var(--sp-2)">找安静环境，全程只说英语。</p>
             </div>
 
             <div id="simPrep" class="hidden">
@@ -445,32 +453,32 @@
               <div class="sim-stage">第二阶段 · 陈述（讲满 2 分钟）</div>
               <div class="sim-timer" id="talkTimer">02:00</div>
               <div class="rec-dot" id="recDot">正在录音</div>
-              <p class="sim-stage" style="margin-top:8px" id="talkHint">时间到自动结束。</p>
-              <div style="text-align:center;margin-top:8px"><button class="btn" id="btnStopTalk">提前结束</button></div>
+              <p class="sim-stage" style="margin-top:var(--sp-2)" id="talkHint">时间到自动结束。</p>
+              <div style="text-align:center;margin-top:var(--sp-2)"><button class="btn" id="btnStopTalk">提前结束</button></div>
             </div>
 
             <div id="simResult" class="hidden">
-              <h3 style="margin-top:14px">练习结果</h3>
-              <audio id="simAudio" controls style="width:100%;margin:8px 0"></audio>
+              <h3 style="margin-top:var(--sp-4)">练习结果</h3>
+              <audio id="simAudio" controls style="width:100%;margin:var(--sp-2) 0"></audio>
               <div class="flu-grid" id="fluGrid"></div>
-              <p style="font-size:13px;color:var(--muted)" id="fluTip"></p>
-              <h3 style="margin-top:14px">四维自评 <span class="badge gray">对照官方评分标准</span></h3>
+              <p style="font-size:var(--fs-body);color:var(--muted)" id="fluTip"></p>
+              <h3 style="margin-top:var(--sp-4)">四维自评 <span class="badge gray">对照官方评分标准</span></h3>
               <div class="slider-row"><label>FC 流利与连贯</label><input type="range" min="4" max="9" step="0.5" value="6" id="slFC"><span class="val" id="vFC">6</span></div>
               <div class="slider-row"><label>LR 词汇资源</label><input type="range" min="4" max="9" step="0.5" value="6" id="slLR"><span class="val" id="vLR">6</span></div>
               <div class="slider-row"><label>GRA 语法多样性</label><input type="range" min="4" max="9" step="0.5" value="6" id="slGRA"><span class="val" id="vGRA">6</span></div>
               <div class="slider-row"><label>PR 发音</label><input type="range" min="4" max="9" step="0.5" value="6" id="slPR"><span class="val" id="vPR">6</span></div>
-              <div style="text-align:center;margin-top:6px">
+              <div style="text-align:center;margin-top:var(--sp-2)">
                 <button class="btn primary" id="btnSaveAssess">保存本次练习</button>
-                <span style="font-size:13px;color:var(--ok);margin-left:10px" id="assessSaved"></span>
+                <span style="font-size:var(--fs-body);color:var(--ok);margin-left:var(--sp-2)" id="assessSaved"></span>
               </div>
-              <h3 style="margin-top:14px">本话题历史</h3>
+              <h3 style="margin-top:var(--sp-4)">本话题历史</h3>
               <div id="assessHist"></div>
             </div>
           </div>
 
           <div class="card" id="upgradeCard">
             <h2>📈 表达三档升级 <span class="badge purple">6 / 7 / 8 分对照</span></h2>
-            <p class="sub" style="margin-bottom:10px">把你刚才的回答与参考表达并列改写，并逐条告诉你换了哪个词、补了什么连接词。</p>
+            <p class="sub" style="margin-bottom:var(--sp-3)">把你刚才的回答与参考表达并列改写，并逐条告诉你换了哪个词、补了什么连接词。</p>
             <div id="upgradeBody"></div>
             <div class="row">
               <button class="btn primary" id="btnUpgrade">生成三档升级</button>
@@ -479,12 +487,12 @@
           </div>
 
           <div class="card">
-            <h2>核心词汇 <span class="badge gray" style="margin-left:4px">点击朗读 · 点 + 加入生词本</span></h2>
+            <h2>核心词汇 <span class="badge gray" style="margin-left:var(--sp-1)">点击朗读 · 点 + 加入生词本</span></h2>
             <div class="vocab-line" id="dVocab"></div>
           </div>
 
           <div class="card">
-            <h2>可参考表达 <span class="badge gray" style="margin-left:4px">点击朗读</span></h2>
+            <h2>可参考表达 <span class="badge gray" style="margin-left:var(--sp-1)">点击朗读</span></h2>
             <div id="dExprs"></div>
           </div>
         </div>
@@ -492,14 +500,14 @@
         <div>
           <div class="card" style="display:flex;flex-direction:column">
             <h2>AI 考官 <span class="badge blue" id="examinerBadge">Amy</span></h2>
-            <p class="sub" style="margin-bottom:10px" id="examinerHint">会根据你的回答动态追问，回答太短会要求展开，跑题会被拉回来。</p>
+            <p class="sub" style="margin-bottom:var(--sp-3)" id="examinerHint">会根据你的回答动态追问，回答太短会要求展开，跑题会被拉回来。</p>
             <div class="chat-box" id="chatBox"></div>
             <div class="chat-input-row">
               <button class="mic-btn" id="btnMic" title="点击开始说话">🎙</button>
               <input id="chatInput" placeholder="说出或输入你的回答…（回车发送）">
               <button class="btn primary" id="btnSend">发送</button>
             </div>
-            <div style="font-size:12px;color:var(--muted);margin-top:8px" id="recHint">语音识别需 Chrome / Edge 并允许麦克风。</div>
+            <div style="font-size:var(--fs-note);color:var(--muted);margin-top:var(--sp-2)" id="recHint">语音识别需 Chrome / Edge 并允许麦克风。</div>
             <div class="row mt8">
               <button class="btn sm" id="btnSpeakQ">🔊 重读当前问题</button>
               <button class="btn sm ghost" id="btnEndTopic">本轮结束，出小结</button>
@@ -518,10 +526,10 @@
 
       <div class="card">
         <h2>生成一套完整题</h2>
-        <p style="font-size:13.5px;color:var(--muted)">系统会随机抽取 1 个 Part 1 话题 + 1 张 Part 2 题卡 + 该题卡对应的 Part 3 讨论题。</p>
+        <p style="font-size:var(--fs-body);color:var(--muted)">系统会随机抽取 1 个 Part 1 话题 + 1 张 Part 2 题卡 + 该题卡对应的 Part 3 讨论题。</p>
         <div class="row mt16">
           <button class="btn primary big" id="btnMockNew">🎲 生成一套题</button>
-          <label class="row" style="font-size:13.5px;gap:8px;cursor:pointer">
+          <label class="row" style="font-size:var(--fs-body);gap:var(--sp-2);cursor:pointer">
             <input type="checkbox" id="optMockRecord" checked><span>启用录音</span>
           </label>
         </div>
@@ -530,7 +538,7 @@
 
       <div class="card">
         <h2>模考怎么用</h2>
-        <ul style="margin-left:20px;font-size:14px;color:var(--muted)">
+        <ul style="margin-left:20px;font-size:var(--fs-body);color:var(--muted)">
           <li>每进入一个阶段计时自动开始，时间到自动推进到下一阶段（也可手动点"下一阶段"）。</li>
           <li>Part 2 会自动录音，结束后可立即回放自听。</li>
           <li>全部结束后给出：四维自评 + 练习报告 + 流利度数据，并写入你的练习历史。</li>
@@ -540,7 +548,7 @@
     </div>
 
     <div id="mockRun" class="hidden">
-      <div class="row" style="justify-content:space-between;margin-bottom:12px">
+      <div class="row" style="justify-content:space-between;margin-bottom:var(--sp-3)">
         <button class="btn ghost" id="btnMockQuit">← 放弃本次模考</button>
         <div class="row">
           <span class="badge gray" id="mockEngineBadge">本地智能引擎</span>
@@ -574,7 +582,7 @@
               <input id="mockInput" placeholder="说出或输入你的回答…">
               <button class="btn primary" id="mockSend">发送</button>
             </div>
-            <div style="font-size:12px;color:var(--muted);margin-top:8px" id="mockRecHint">语音识别需 Chrome / Edge 并允许麦克风。</div>
+            <div style="font-size:var(--fs-note);color:var(--muted);margin-top:var(--sp-2)" id="mockRecHint">语音识别需 Chrome / Edge 并允许麦克风。</div>
           </div>
         </div>
       </div>
@@ -588,9 +596,9 @@
       </div>
       <div class="card">
         <h2>Part 2 录音与流利度</h2>
-        <audio id="mockAudio" controls style="width:100%;margin:8px 0"></audio>
+        <audio id="mockAudio" controls style="width:100%;margin:var(--sp-2) 0"></audio>
         <div class="flu-grid" id="mockFluGrid"></div>
-        <p style="font-size:13px;color:var(--muted)" id="mockFluTip"></p>
+        <p style="font-size:var(--fs-body);color:var(--muted)" id="mockFluTip"></p>
       </div>
       <div class="card">
         <h2>四维自评</h2>
@@ -602,7 +610,7 @@
           <button class="btn primary" id="btnMockSave">保存本次模考</button>
           <button class="btn" id="btnMockAgain">再来一套</button>
         </div>
-        <p style="font-size:13px;color:var(--ok);margin-top:8px" id="mockSaved"></p>
+        <p style="font-size:var(--fs-body);color:var(--ok);margin-top:var(--sp-2)" id="mockSaved"></p>
       </div>
     </div>
   </section>
@@ -614,7 +622,7 @@
     <div class="card">
       <h2>浏览与检索 <span class="badge blue" id="libStat">—</span></h2>
       <input id="libSearch" placeholder="搜索关键词（中/英都能搜，如 work / 团队 / teamwork / 音乐）…">
-      <div id="topicList" style="margin-top:12px"></div>
+      <div id="topicList" style="margin-top:var(--sp-3)"></div>
     </div>
   </section>
 
@@ -651,10 +659,10 @@
 
     <div class="card">
       <h2>数据与隐私 <span class="badge gray" id="storeStat">统计中…</span></h2>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:10px">
+      <p style="font-size:var(--fs-body);color:var(--muted);margin-bottom:var(--sp-3)">
         <b>全部数据只存在这台设备的浏览器里</b>，不会上传到任何服务器，也不会有第二个人看到。清除后无法恢复。
       </p>
-      <div style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.95">
+      <div style="font-size:var(--fs-body);color:var(--muted);margin-bottom:var(--sp-4);line-height:1.95">
         · 练习记录 / 自评 / 生词本 / 偏好设置 → 浏览器 localStorage（键名 <code>im_log</code>、<code>im_wordbook</code>、<code>im_settings</code>）<br>
         · 大模型 API Key（仅在你自己填写后存在）→ 浏览器 localStorage（键名 <code>im_llm</code>），请求由本机浏览器直发你选的服务商<br>
         · Part 2 录音 → 浏览器 IndexedDB（库 <code>ielts-oral-buddy</code> → 表 <code>recordings</code>）<br>
