@@ -351,6 +351,14 @@
       if (opts.html) body.innerHTML = text; else body.textContent = text;
       el.appendChild(w); el.appendChild(body);
       if (opts.type && !opts.html) typeIn(body, text, box);
+    } else if (who === "coach") {
+      /* 教练点评与考官台词分通道渲染：真实考官不会评价回答，
+         所以这条必须带着标签，不能让人误以为考官在给反馈。 */
+      const tag = document.createElement("span");
+      tag.className = "tag"; tag.textContent = "教练点评 · 非考官原话";
+      const body = document.createElement("span");
+      body.className = "body"; body.textContent = text;
+      el.appendChild(tag); el.appendChild(body);
     } else if (opts.html) el.innerHTML = text;
     else el.textContent = text;
     box.appendChild(el);
@@ -360,11 +368,23 @@
   }
   function addSys(boxSel, text, opts) { return addMsg(boxSel, "sys", text, opts); }
 
+  /* 考官话术脚本集中在 engine.js，这里只做取用 */
+  function SCRIPT() { return (window.IELTS_ENGINE && window.IELTS_ENGINE.SCRIPT) || {}; }
+  function sLine(path, fallback) {
+    const v = String(path).split(".").reduce((o, k) => (o == null ? undefined : o[k]), SCRIPT());
+    return (v && v[0] && v[0].en) || fallback || "";
+  }
+  /* 以"考官身份"说出脚本台词：会朗读、逐字打出，与系统提示区分开 */
+  function examinerSay(boxSel, text, opts) {
+    if (!text) return null;
+    return addMsg(boxSel, "ai", text, Object.assign({ speak: true, type: true }, opts || {}));
+  }
+
   /* 考官开场 */
   function examinerOpen(topic, part, specificQ, boxSel) {
     let q;
     if (part === 2) {
-      q = "Here's your topic card. You have one minute to prepare, then speak for up to two minutes.";
+      q = sLine("part2.giveCard", "Here is your task card. You have one minute to prepare.");
     } else if (specificQ) {
       q = specificQ;
     } else if (part === 3 && topic.part3 && topic.part3.length) {
@@ -396,7 +416,9 @@
     }
     return {
       question: left[0],
-      feedback: d.words >= 15 ? "Good — let's move on." : "",
+      /* 真实考官不会说 Good 之类的评价，只推进流程；点评走 coach 通道 */
+      feedback: "",
+      coach: window.IELTS_ENGINE.coachNote(answer, t, CONV.part, d),
       flag: "ok"
     };
   }
@@ -417,6 +439,7 @@
 
     if (res.feedback) addMsg(boxSel, "ai", res.feedback);
     addMsg(boxSel, "ai", res.question, { speak: true, type: true });
+    if (res.coach) addMsg(boxSel, "coach", res.coach);
     CONV.asked.push(res.question);
     const prevQ = CONV.lastQ;
     CONV.lastQ = res.question;
@@ -555,6 +578,84 @@
   }
   bindPartLevel();
 
+  /* ---------- 分档示范回答 ----------
+     按当前题的类型自动匹配：Part 1 / Part 3 看问题句式，
+     Part 2 看话题类别（人物 / 地点 / 事件 / 物品 / 志向）。 */
+  function renderBands(part, topic, question) {
+    const B = window.IELTS_BANDS;
+    const body = $("#bandBody"), cnt = $("#bandCount"), cb = $("#chunkBody");
+    if (!B || !body) return;
+
+    const item = B.forTopic(part, topic, question);
+    if (item) {
+      const qEn = item.q || item.prompt || "";
+      const qZh = item.qzh || item.promptZh || "";
+      body.innerHTML =
+        '<div class="bm-q">' + esc(item.label) + " · " + esc(qEn) +
+        (qZh ? ' <span style="color:var(--muted);font-weight:400">' + esc(qZh) + "</span>" : "") + "</div>" +
+        item.tiers.map(t =>
+          '<div class="bm-tier b' + t.band + '">' +
+          '<div class="bm-head"><span class="badge ' + (t.band === 6 ? "gray" : t.band === 7 ? "" : "purple") + '">Band ' + t.band + "</span>" +
+          '<button class="btn sm" data-bm-speak="' + t.band + '">' + IC("volume") + " 朗读这一档</button></div>" +
+          '<div class="bm-en">' + esc(t.text) + "</div>" +
+          '<div class="bm-zh">' + esc(t.zh) + "</div>" +
+          '<div class="bm-why">分档依据：' + esc(t.why) + "</div>" +
+          "</div>").join("");
+      $$("#bandBody [data-bm-speak]").forEach(el => el.addEventListener("click", () => {
+        const t = item.tiers.find(x => String(x.band) === el.dataset.bmSpeak);
+        if (t) speak(t.text, { rate: 0.9 });
+      }));
+      if (cnt) cnt.textContent = item.label + " · 3 档";
+    } else {
+      body.innerHTML = "";
+      if (cnt) cnt.textContent = "—";
+    }
+
+    if (cb && !cb.dataset.done) {
+      cb.innerHTML = B.chunks.map(g =>
+        '<div class="chunk-group"><div class="cg-head">' + esc(g.group) +
+        ' <span class="badge gray">' + g.items.length + " 条</span></div>" +
+        '<div class="cg-hint">' + esc(g.hint) + "</div>" +
+        g.items.map(it => '<div class="chunk-item"><span class="ci-en" style="cursor:pointer">' + esc(it.en) + "</span>" +
+          '<span class="ci-zh">' + esc(it.zh) + '</span><span class="badge ' +
+          (it.band === 8 ? "purple" : it.band === 7 ? "blue" : "gray") + '">' + it.band + "</span></div>").join("") +
+        "</div>").join("");
+      cb.dataset.done = "1";
+      /* 用索引回查原文，避免把英文写进 data 属性 */
+      $$("#chunkBody .chunk-group").forEach((gEl, gi) => {
+        Array.from(gEl.querySelectorAll(".ci-en")).forEach((enEl, ii) => {
+          enEl.addEventListener("click", () => {
+            const txt = (B.chunks[gi].items[ii] || {}).en || "";
+            speak(txt.replace(/…+\s*$/, ""), { rate: 0.9 });
+          });
+        });
+      });
+    }
+    setCollapsed($("#bandColl"), true);
+  }
+
+  /* ---------- 考官话术全表（题库页） ---------- */
+  function renderScript() {
+    const body = $("#scriptBody");
+    const S = window.IELTS_ENGINE && window.IELTS_ENGINE.SCRIPT;
+    if (!body || !S || body.dataset.done) return;
+    const block = (title, lines) =>
+      '<h3 class="mt16">' + esc(title) + "</h3>" +
+      (lines || []).map(l =>
+        '<div class="script-line"><span class="sl-en">' + esc(l.en) + '</span><span class="sl-zh">' + esc(l.zh) + "</span></div>").join("");
+    let html = "";
+    html += block(S.part0.label, S.part0.lines);
+    html += block(S.part1.label, S.part1.open.concat(S.part1.short, S.part1.waiting, S.part1.moveOn, S.part1.backTo, S.part1.toPart2));
+    html += block(S.part2.label, S.part2.giveCard.concat(S.part2.start, S.part2.timeUp, S.part2.extend, S.part2.enough, S.part2.toPart3));
+    html += block(S.part3.label, S.part3.deepen.concat(S.part3.repeatRequest, S.part3.repeatGrant, S.part3.cantExplain, S.part3.anotherAngle));
+    html += block(S.end.label, S.end.lines);
+    html += '<h3 class="mt16">考官听到不同回答时的反应</h3>' +
+      S.scenarios.map(s =>
+        '<div class="script-line"><span class="sl-en">' + esc(s.zh) + '</span><span class="sl-zh">' + esc(s.en) + "</span></div>").join("");
+    body.innerHTML = html;
+    body.dataset.done = "1";
+  }
+
   function doDraw() {
     const pool = promptsFor(filter);
     if (!pool.length) {
@@ -633,6 +734,9 @@
     const mc = $("#materialCount");
     if (mc) mc.textContent = curTopic.vocab.length + " 词 · " + curTopic.exprs.length + " 表达";
     setCollapsed($("#materialColl"), true);
+
+    /* 分档示范：按当前题的题型（Part 1/3）或话题类别（Part 2）匹配 */
+    renderBands(curTopic.part, curTopic, isP2 ? curTopic.cue : (typeof qi === "number" ? curTopic.qs[qi] : curTopic.qs[0]));
 
     /* 清空上一话题状态 */
     $("#chatBox").innerHTML = "";
@@ -1325,6 +1429,7 @@
     renderVoiceSettings();
     renderAll();
     renderLib();
+    renderScript();
     renderReview();
     renderPill();
     $("#optMockRecord").checked = !!SET.mockRecord;
@@ -1409,6 +1514,8 @@
 
   function goStage(i) {
     stopMockTimers();
+    /* 记住上一阶段，用来决定考官此刻该说哪句过渡话术 */
+    const prevKey = STAGES[mock.idx] ? STAGES[mock.idx].key : null;
     mock.idx = i;
     renderStageBar();
     const st = STAGES[i];
@@ -1437,6 +1544,7 @@
         s.p2.bullets.map(b => "<li>" + esc(b) + "</li>").join("") + "</ul>";
       $("#mockInput").disabled = true; $("#mockSend").disabled = true; $("#mockMic").disabled = true;
       addSys("#mockChat", "考官把题卡递给你：1 分钟准备，可在左侧记关键词，时间到自动进入陈述。");
+      examinerSay("#mockChat", sLine("part2.giveCard"));
     } else if (st.key === "p2talk") {
       $("#mockCue").innerHTML = '<p style="font-weight:600">' + esc(s.p2.cue) + "</p><p style='font-size:var(--fs-body);color:var(--muted)'>现在开口讲满 2 分钟</p>";
       $("#mockInput").disabled = true; $("#mockSend").disabled = true; $("#mockMic").disabled = true;
@@ -1444,6 +1552,7 @@
       $("#mockActRow").innerHTML = '<button class="btn sm" id="btnMockStopTalk">提前结束陈述</button>';
       $("#btnMockStopTalk").addEventListener("click", () => { goStage(mock.idx + 1); });
       addSys("#mockChat", "Part 2 陈述开始，正在录音……");
+      examinerSay("#mockChat", sLine("part2.timeUp"));
       mock.recOn2 = true;
       mock.p2promise = new Promise(res => { mock.p2resolve = res; });
       Rec.start(rec => {
@@ -1457,6 +1566,12 @@
       const p3 = (s.p2.part3 || []).map(p => p[0]);
       $("#mockCue").innerHTML = "<p style='font-weight:600'>Part 3 · 深入讨论</p><p style='font-size:var(--fs-body);color:var(--muted)'>考官会把这些追问推向抽象层面，尽量展开论述。</p>" +
         p3.map((q, k) => '<div class="qlist-item">' + (k + 1) + ". " + esc(q) + "</div>").join("");
+      /* Part 2 是被动结束的：考官先给打断语，再过渡到 Part 3 */
+      if (prevKey === "p2talk") {
+        examinerSay("#mockChat", sLine("part2.enough"));
+        addSys("#mockChat", "Part 2 上限 2 分钟，到点被打断属于固定流程，不是负面信号。");
+      }
+      examinerSay("#mockChat", sLine("part2.toPart3"));
       convReset(s.p2, 3, "mock");
       examinerOpen(s.p2, 3, null, "#mockChat");
     }
@@ -1477,6 +1592,14 @@
     stopMockTimers();
     $("#mockRun").classList.add("hidden");
     $("#mockResult").classList.remove("hidden");
+
+    /* 结束语：真实考试的最后两句固定台词 */
+    const endBox = $("#mockEndScript");
+    if (endBox) {
+      const S = SCRIPT().end || { lines: [] };
+      endBox.innerHTML = (S.lines || []).map(l =>
+        '<div class="script-line"><span class="sl-en">' + esc(l.en) + '</span><span class="sl-zh">' + esc(l.zh) + "</span></div>").join("");
+    }
 
     let rec = mock.p2res;
     if (!rec && mock.p2promise) { try { rec = await mock.p2promise; } catch (e) { rec = null; } }

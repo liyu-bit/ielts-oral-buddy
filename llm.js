@@ -140,22 +140,34 @@ window.IELTS_LLM = (function () {
   }
 
   /* ==================================================================
-     考官（Part 1 / Part 3）：根据真实回答动态追问 + 跑题判断
+     考官（Part 1 / Part 2 / Part 3）：按官方脚本推进 + 动态追问
+     关键约束：真实考官**不评价**回答。夸奖、纠错、给分、解释词义
+     都不是考官会做的事，这些一律交给 UI 上的"教练点评"通道。
      ================================================================== */
+  const EXAMINER_RULES = [
+    "You are a certified IELTS Speaking examiner conducting a real test. Your language is plain, fixed and procedural.",
+    "Absolute rules:",
+    "(1) Speak only English.",
+    "(2) Never praise, never criticise, never congratulate, never comment on the quality of the answer.",
+    "(3) Never give, hint at or mention a band score, and never refer to band descriptors out loud.",
+    "(4) Never correct grammar, word choice or pronunciation.",
+    "(5) Never explain the meaning of a word. If asked, reply exactly: I'm afraid I can't explain the words. Could you try to answer the question?",
+    "(6) Never chat, never share your own views, never ask about anything outside the test topics.",
+    "(7) Ask exactly ONE question per turn and keep your spoken reply under 35 words.",
+    "(8) Build the next question on what the candidate actually said; if they mention a specific detail, dig into that detail.",
+    "(9) 'Mm-hmm.' or 'Right.' is your only acknowledgement, and it signals listening, not approval.",
+    "(10) If the answer is under about 12 words, do not move on: ask one short neutral probe (Why is that? / Could you explain that a bit more?).",
+    "(11) If the answer is off-topic, say: OK. Let's go back to the question about ... and repeat your previous question once. If they drift a second time, move on.",
+    "(12) If the candidate asks you to repeat, repeat once, opening with: Sure. I asked you ..."
+  ].join(" ");
+
   function examinerSystem(topic, part) {
-    const base =
-      "You are a certified IELTS Speaking examiner. You conduct a realistic, adaptive interview " +
-      "and respond to what the candidate actually says — you never read from a fixed list. " +
-      "Rules: (1) Speak only English. (2) Keep your spoken reply under 45 words. " +
-      "(3) Ask exactly ONE question per turn. " +
-      "(4) Base your next question on the candidate's last answer; if they mention something specific, dig into it. " +
-      "(5) If the candidate is off-topic or answering a different question, say so briefly and steer them back. " +
-      "(6) If their answer is very short (under ~12 words), ask them to expand instead of moving on. " +
-      "(7) Never praise excessively and never reveal band scores during the interview.";
-    const extra = part === 3
-      ? " (8) This is Part 3: escalate every question to an abstract, societal or general level — causes, changes over time, comparisons, the role of government or institutions, advantages and disadvantages."
-      : " (8) This is Part 1: keep questions short, personal and everyday.";
-    return base + extra + "\nCurrent topic: " + JSON.stringify(topicTitle(topic)) + ".";
+    const byPart = part === 3
+      ? " This is Part 3: every question must be abstract, societal or general — causes, change over time, generational differences, advantages and disadvantages, the role of government, and predictions. When an answer stays vague, ask for the reasoning behind it rather than accepting it."
+      : part === 2
+        ? " This is Part 2: the candidate speaks alone for up to two minutes. Do not interrupt or ask anything until they stop; then ask at most one question drawn from the last bullet of the task card."
+        : " This is Part 1: keep questions short, personal and everyday — habits, preferences, likes, changes, descriptions and simple opinions about the candidate's own life.";
+    return EXAMINER_RULES + byPart + " Current topic: " + JSON.stringify(topicTitle(topic)) + ".";
   }
 
   function topicTitle(topic) {
@@ -170,9 +182,14 @@ window.IELTS_LLM = (function () {
       role: "user",
       content:
         "Here is the conversation so far. Produce your next turn as strict JSON with exactly these keys: " +
-        '{"feedback": "...", "question": "...", "flag": "ok|short|offtopic|escalated"}. ' +
-        "feedback = one short natural sentence reacting to the candidate (empty string if this is the opening turn). " +
+        '{"feedback": "...", "question": "...", "flag": "ok|short|offtopic|escalated", "coach": "..."}. ' +
+        "feedback = what you say out loud in English before the next question. It must never evaluate the answer: " +
+        "use only a listening signal (Mm-hmm. / Right. / I see.), a procedural pull-back line, or an empty string. " +
         "question = the single next question you ask. " +
+        "coach = a note in Chinese for the candidate's study log. You do NOT say this out loud. In it, estimate the last answer " +
+        "against the four official criteria (FC 流利与连贯、LR 词汇资源、GRA 语法多样性与准确性、PR 发音), quote the exact words or phrases " +
+        "that justify each judgement, state plainly that PR cannot be judged from text, and give at most two concrete fixes. " +
+        "Keep it under 160 Chinese characters. For the opening turn, coach is an empty string. " +
         "Do not add any text outside the JSON."
     });
     const convo = history.length
@@ -186,6 +203,7 @@ window.IELTS_LLM = (function () {
     return {
       feedback: typeof j.feedback === "string" ? j.feedback : "",
       question: String(j.question).trim(),
+      coach: typeof j.coach === "string" ? j.coach : "",
       flag: ["ok", "short", "offtopic", "escalated"].includes(j.flag) ? j.flag : "ok"
     };
   }
@@ -197,13 +215,17 @@ window.IELTS_LLM = (function () {
     const messages = [{
       role: "system",
       content:
-        "You are an IELTS Speaking coach. You rewrite a candidate's answer into three parallel versions " +
-        "at Band 6, Band 7 and Band 8, using the official band descriptors (Fluency & Coherence, " +
-        "Lexical Resource, Grammatical Range & Accuracy). Keep each version the SAME length and the SAME " +
-        "content as the original — improve the language, do not invent new facts. Band 6: clean, correct, " +
-        "simple linking. Band 7: better collocations, discourse markers, at least one subordinate clause. " +
-        "Band 8: precise and idiomatic lexis, flexible grammar, a concessive or complex structure, some " +
-        "abstract framing. Reply in strict JSON only."
+        "You are an IELTS Speaking coach working from the official band descriptors " +
+        "(Fluency and Coherence, Lexical Resource, Grammatical Range and Accuracy). " +
+        "You rewrite one candidate answer into three parallel versions.\n" +
+        "Hard constraints:\n" +
+        "· Keep the SAME facts, the SAME length range and the SAME speaker's voice. Improve the language; never invent new content or turn it into an essay.\n" +
+        "· Every version must remain speakable aloud: contractions, natural rhythm, no written-only constructions.\n" +
+        "· Avoid clichés (Last but not least, With the development of society, Every coin has two sides) and avoid stacking adjectives.\n" +
+        "· Band 6: keep the candidate's own wording; fix errors, add only the simplest linking (and / so / also / but) and make sure every idea is complete.\n" +
+        "· Band 7: upgrade to natural collocations and discourse markers (I'd say, to be honest, that said, which is why), vary sentence openings, include at least one subordinate clause.\n" +
+        "· Band 8: precise and idiomatic lexis, flexible grammar (concessive or cleft structures), and a closing move that steps back to a wider point — while still sounding like spontaneous speech, not a memorised answer.\n" +
+        "Reply in strict JSON only."
     }];
     messages.push({
       role: "user",
@@ -214,8 +236,9 @@ window.IELTS_LLM = (function () {
         "Return strict JSON with exactly these keys:\n" +
         '{"band6":"...","band7":"...","band8":"...",' +
         '"notes":[{"kind":"词汇|连接词|结构|语法","from":"...","to":"...","note":"..."}]}\n' +
-        "notes must list every meaningful change you made from the ORIGINAL answer to the Band 8 version " +
-        "(max 8 items), in Chinese for the \"note\" field. No text outside the JSON."
+        "notes must describe the changes that take a reader from the ORIGINAL answer to the Band 8 version (max 8 items). " +
+        "In the \"note\" field, write Chinese and name the criterion it serves (FC / LR / GRA), for example: " +
+        "\"LR：very important 换成 crucially important，搭配更精准\". No text outside the JSON."
     });
     const out = await chat(messages, { json: true, temperature: 0.6, signal: opts && opts.signal });
     const j = parseJSON(out);
@@ -224,9 +247,9 @@ window.IELTS_LLM = (function () {
       base: answer,
       tiered: true,
       tiers: [
-        { band: 6, name: "6 分版 · 把话说清楚", desc: "结构干净、时态正确、有基本衔接。", text: String(j.band6) },
-        { band: 7, name: "7 分版 · 词汇与衔接升级", desc: "更好的搭配、话语标记与从句。", text: String(j.band7) },
-        { band: 8, name: "8 分版 · 结构与抽象升级", desc: "精准地道用词、灵活句式、让步与抽象延展。", text: String(j.band8) }
+        { band: 6, name: "6 分版 · 把话说清楚", desc: "保留你的原话，修正错误，只补最基础的连接，信息完整、没有硬伤。", text: String(j.band6) },
+        { band: 7, name: "7 分版 · 词汇与衔接升级", desc: "换成地道搭配与话语标记，句式有主次，至少带一个从句。", text: String(j.band7) },
+        { band: 8, name: "8 分版 · 结构与抽象升级", desc: "精准地道的用词、灵活的句式，结尾退一步给出更宏观的判断，但仍像即兴说话。", text: String(j.band8) }
       ],
       notes: Array.isArray(j.notes) ? j.notes.slice(0, 8).map(x => ({
         tier: 8, kind: x.kind || "改写", from: x.from || "", to: x.to || "", note: x.note || ""
@@ -241,17 +264,22 @@ window.IELTS_LLM = (function () {
     const messages = [{
       role: "system",
       content:
-        "You are a demanding but encouraging IELTS Speaking coach. You analyse a practice session from " +
-        "the raw data and the candidate's own answers, then give a short, concrete diagnosis. " +
-        "Be specific and reference what the candidate actually said. Reply in Chinese, in strict JSON."
+        "You are a demanding but fair IELTS Speaking coach. You diagnose one practice session against the four official criteria " +
+        "(FC 流利与连贯、LR 词汇资源、GRA 语法多样性与准确性、PR 发音).\n" +
+        "Rules:\n" +
+        "· Anchor every point in the candidate's actual words — quote a short phrase when you praise or criticise something.\n" +
+        "· PR cannot be judged from a transcript; if no audio measurement is provided, say so instead of guessing.\n" +
+        "· Give the practice advice in a form the candidate can act on tomorrow, not general encouragement.\n" +
+        "Reply in Chinese, in strict JSON."
     }];
     messages.push({
       role: "user",
       content:
         "Session data (JSON):\n" + JSON.stringify(payload).slice(0, 6000) + "\n\n" +
         "Return strict JSON: " +
-        '{"overall":"一两句总评","strengths":["...","..."],"weaknesses":["...","..."],' +
-        '"advice":["...","..."]}. Each array max 4 items, each item under 40 Chinese characters.'
+        '{"overall":"两三句总评，指出最值得先解决的一项","strengths":["...","..."],"weaknesses":["...","..."],' +
+        '"advice":["...","..."]}. Each array max 4 items, each item under 40 Chinese characters. ' +
+        "In strengths and weaknesses, name the criterion (FC / LR / GRA / PR) and cite a concrete detail from the data."
     });
     const out = await chat(messages, { json: true, temperature: 0.6, signal: opts && opts.signal });
     const j = parseJSON(out);

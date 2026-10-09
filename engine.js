@@ -154,12 +154,6 @@ window.IELTS_ENGINE = (function () {
     return "generic";
   }
 
-  const SHORT_LEAD = ["Could you expand on that a little?", "Could you say a bit more about that?",
-                      "Can you tell me more about that?"];
-  const OFFTOPIC_LEAD = ["That's a slightly different angle, so let me steer you back.",
-                         "Interesting, though that drifts away from what I asked.",
-                         "I see — but let's stay with the question."];
-
   const P3_TEMPLATES = [
     t => "Why do people feel so differently about " + t + "?",
     t => "How has " + t + " changed over the past few decades?",
@@ -171,16 +165,261 @@ window.IELTS_ENGINE = (function () {
     t => "How does " + t + " affect different generations differently?"
   ];
 
-  function trimTo(s, n) {
-    const w = (s || "").trim().split(/\s+/);
-    return w.slice(0, n).join(" ");
+  /* =========================== 考官话术脚本 ===========================
+     真实雅思口语考官的语言高度"脚本化"：用词固定、只负责推进流程。
+     他**不评价**回答好坏、不给分数、不纠正语法、不解释生词、
+     不聊私人话题、不发表自己的观点；Mm-hmm / Right 只是"我在听"的信号。
+     这里把官方流程逐句固化（英文原文 + 中文对照），供离线考官、
+     模考流程节点与 UI 提示共用。同时提供"教练点评"作为独立通道——
+     点评是学习辅助，真实考官不会说，UI 上必须与考官台词分开显示。
+     ------------------------------------------------------------------ */
+  const SCRIPT = {
+    rules: {
+      label: "考官行为边界",
+      items: [
+        { en: "Mm-hmm. / Right. / I see.", zh: "只在倾听，不代表赞同或给分。" },
+        { en: "Thank you. That's enough.", zh: "Part 2 到 2 分钟必然打断，属正常流程。" },
+        { en: "I'm afraid I can't explain the words.", zh: "不解释单词含义，只提示你试着作答。" },
+        { en: "(no reaction)", zh: "不会评价好坏、不给建议、不与你闲聊、不分享自己的观点。" }
+      ]
+    },
+    part0: {
+      label: "进场与身份核验",
+      lines: [
+        { en: "Good morning.", zh: "早上好。" },
+        { en: "Good afternoon.", zh: "下午好。" },
+        { en: "My name is Amy. Could you tell me your full name, please?", zh: "我叫 Amy，请告诉我你的全名。" },
+        { en: "What should I call you?", zh: "我该怎么称呼你？" },
+        { en: "Could you show me your identification, please?", zh: "请出示你的身份证件。" },
+        { en: "Thank you. Alright. Now, in this speaking test, we are going to talk about several different topics.", zh: "谢谢。好的，接下来我们会聊几个不同的话题。" },
+        { en: "First, I'd like to ask you some general questions about yourself.", zh: "首先，我想问你一些关于你自己的基础问题。" }
+      ]
+    },
+    part1: {
+      label: "Part 1 · 日常问答",
+      open: [
+        { en: "Let's talk about {topic}.", zh: "我们聊聊{topic}吧。" },
+        { en: "Now, let's move on to talk about {topic}.", zh: "下面我们换个话题，聊聊{topic}。" },
+        { en: "I'd like to ask you about {topic}.", zh: "我想问问你关于{topic}的事。" }
+      ],
+      short: [
+        { en: "Why is that?", zh: "为什么呢？" },
+        { en: "Could you explain that a bit more?", zh: "可以再多说一点吗？" },
+        { en: "What do you mean by that?", zh: "你这么说是什么意思？" },
+        { en: "Do many people do that where you live?", zh: "在你住的地方，很多人会这样吗？" },
+        { en: "How often do you do it?", zh: "你多久做一次？" }
+      ],
+      waiting: [
+        { en: "Don't worry. Take your time.", zh: "别紧张，慢慢来。" },
+        { en: "Maybe you can think about it for a second.", zh: "你可以稍微想一下。" }
+      ],
+      moveOn: [
+        { en: "OK. Let's move on to the next question.", zh: "好，我们换下一个问题。" }
+      ],
+      backTo: [
+        { en: "OK. Let's go back to the question about {topic}.", zh: "好，我们回到关于{topic}的问题。" }
+      ],
+      toPart2: [
+        { en: "Alright. Now, I'm going to give you a task card.", zh: "好了，现在我会给你一张话题卡。" },
+        { en: "Here is your task card. You have one minute to prepare. You can make notes on this paper.", zh: "这是你的话题卡。你有 1 分钟准备时间，可以在纸上写笔记。" },
+        { en: "I will tell you when one minute is up.", zh: "一分钟到了我会提醒你。" }
+      ]
+    },
+    part2: {
+      label: "Part 2 · 个人陈述",
+      giveCard: [
+        { en: "Here is your task card. You have one minute to prepare.", zh: "这是你的话题卡，你有 1 分钟准备时间。" }
+      ],
+      start: [
+        { en: "Your one minute starts now.", zh: "一分钟计时开始。" }
+      ],
+      timeUp: [
+        { en: "OK. Time's up. Please start speaking.", zh: "好了，时间到，请开始讲述。" }
+      ],
+      extend: [
+        { en: "Can you tell me more about it?", zh: "你可以再多讲讲吗？" },
+        { en: "Is there anything else you would like to add?", zh: "还有什么想补充的吗？" }
+      ],
+      enough: [
+        { en: "Thank you. That's enough.", zh: "谢谢，可以了。" }
+      ],
+      toPart3: [
+        { en: "Now, we will discuss some more general questions related to this topic.", zh: "现在我们来讨论和这个话题相关的一些更宏观的问题。" }
+      ]
+    },
+    part3: {
+      label: "Part 3 · 深入讨论",
+      deepen: [
+        { en: "Why do you think so?", zh: "你为什么这么认为？" },
+        { en: "Do you agree or disagree with that?", zh: "你同意还是不同意这个观点？" },
+        { en: "What do other people think about this?", zh: "其他人怎么看待这件事？" },
+        { en: "Are there any differences between young people and old people in this respect?", zh: "在这方面年轻人和老年人有区别吗？" },
+        { en: "How has this changed compared to the past?", zh: "和过去相比，这件事发生了怎样的变化？" },
+        { en: "What are the advantages and disadvantages of that?", zh: "那有哪些优点和缺点？" },
+        { en: "Do you think governments should spend more money on this?", zh: "你认为政府应该在这方面投入更多资金吗？" }
+      ],
+      repeatRequest: [
+        { en: "Sorry, could you repeat that question please?", zh: "（考生可用）不好意思，可以重复一下这个问题吗？" }
+      ],
+      repeatGrant: [
+        { en: "Sure. I asked you ...", zh: "当然。我刚才问你的是……（礼貌重复一次）" }
+      ],
+      cantExplain: [
+        { en: "I'm afraid I can't explain the words. Could you try to answer the question?", zh: "抱歉我不能解释词义，你可以试着回答这个问题。" }
+      ],
+      anotherAngle: [
+        { en: "Alright. Let's look at it from another angle.", zh: "好，那我们换个角度来看这个问题。" }
+      ]
+    },
+    end: {
+      label: "结束语",
+      lines: [
+        { en: "Thank you. That is the end of the speaking test.", zh: "谢谢。口语考试到此结束。" },
+        { en: "Goodbye.", zh: "再见。" }
+      ]
+    },
+    backchannel: ["Mm-hmm.", "Right.", "I see.", "OK."],
+    scenarios: [
+      { key: "fluent", zh: "回答流利、有细节、逻辑清楚", en: "Examiner listens quietly, nods, occasionally says Mm-hmm / Right, cuts you off at the time limit and never praises you." },
+      { key: "hesitant", zh: "大量卡顿、重复、反复自我纠正", en: "Examiner keeps a neutral smile, listens patiently, asks fewer follow-ups and ends on time. No grammar correction." },
+      { key: "offtopic", zh: "答非所问", en: "Mild: moves to the next question. Serious: \"OK, let's go back to ...\" to pull you back." },
+      { key: "tooShort", zh: "只答 Yes / No 或一两句", en: "\"Why?\" / \"Could you tell me more?\" — and if it continues, switches question quickly." },
+      { key: "askRepeat", zh: "听不懂问题，请求重复", en: "Repeats once. If you still don't follow the same question, most likely moves on." },
+      { key: "selfCorrect", zh: "说错后马上纠正自己", en: "No reaction, keeps listening. Occasional self-correction costs nothing; constant correction hurts fluency." },
+      { key: "overtime", zh: "Part 2 超时", en: "\"Thank you. That's enough.\" — a normal procedure, not a negative signal." }
+    ]
+  };
+
+  function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+  /* 按文本生成稳定的选择下标：同一段回答每次渲染结果一致，便于复现 */
+  function seedPick(arr, seed, offset) {
+    let h = 0; const s = String(seed || "");
+    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+    return arr[(h + (offset || 0)) % arr.length];
+  }
+  /* 取一条脚本台词；vars 用于替换 {topic} 占位符 */
+  function line(kind, vars) {
+    const seg = SCRIPT[kind];
+    if (!seg) return { en: "", zh: "" };
+    const arr = seg.lines || seg.deepen || seg.start || [];
+    const raw = pick(arr);
+    const fill = s => String(s || "").replace(/\{topic\}/g, (vars && vars.topic) || "this");
+    return { en: fill(raw.en), zh: fill(raw.zh) };
+  }
+
+  /* =========================== 四维分档估计 ===========================
+     只依据文本可观测的证据做保守估计：连接手段、词汇多样性、
+     从句与句式变化。发音（PR）无法从文字判断，一律返回 null，
+     由用户听自己的录音自评——宁可留白，也不给假数字。
+     ------------------------------------------------------------------ */
+  const LINKERS = ["however", "although", "though", "even though", "whereas", "while", "despite",
+    "in spite of", "on the other hand", "that said", "that being said", "moreover", "furthermore",
+    "in addition", "besides", "as a result", "consequently", "therefore", "which is why", "so that",
+    "in terms of", "apart from", "not only", "first of all", "to begin with", "overall", "all in all"];
+  const HEDGES = ["i suppose", "i'd say", "i would say", "tend to", "tends to", "more or less",
+    "roughly", "probably", "it seems", "as far as i'm concerned", "to some extent",
+    "to a large extent", "it depends", "generally speaking", "in most cases", "by and large"];
+  const BAND8_LEX = ["compelling", "inevitable", "arguably", "sustainable", "accessible", "rewarding",
+    "worthwhile", "crucial", "significant", "genuinely", "considerably", "substantially",
+    "strike a balance", "make the most of", "get the hang of", "out of the blue", "in the long run",
+    "take for granted", "bear in mind", "on the whole", "as opposed to", "rather than", "in favour of",
+    "spoil for choice", "all over the place", "wind down", "clear my head", "come to terms with"];
+  const COMPLEX_RE = /\b(which|who|whom|whose|that|where|when|although|though|while|whereas|if|unless|since|because|so that|even though|as long as|in case)\b/i;
+  const TENSE_RE = [/\b(was|were|did|had|used to)\b/i, /\b(am|is|are|do|does|have|has)\b/i,
+    /\b(will|going to|would|shall)\b/i, /\b(have been|has been|had been)\b/i];
+
+  function clampBand(x) { return Math.max(5, Math.min(9, Math.round(x * 2) / 2)); }
+  function lowIncludes(text, list) {
+    const t = " " + (text || "").toLowerCase() + " ";
+    return list.filter(k => t.indexOf(k) >= 0);
+  }
+
+  function bandEstimate(answer, topic) {
+    const raw = (answer || "").trim();
+    const toks = tokenize(raw);
+    const n = toks.length;
+    if (!n) return null;
+
+    const d = diagnose(raw, topic, "");
+    const content = contentWords(raw);
+    const uniq = [...new Set(content.map(stem))];
+    const variety = content.length ? uniq.length / content.length : 0;
+    const linkers = lowIncludes(raw, LINKERS);
+    const hedges = lowIncludes(raw, HEDGES);
+    const adv = lowIncludes(raw, BAND8_LEX);
+    const sents = splitSentences(raw);
+    const avgLen = sents.length ? n / sents.length : n;
+    const tenses = TENSE_RE.filter(re => re.test(raw)).length;
+    const complex = COMPLEX_RE.test(raw);
+    const topicHits = (topic ? topicTerms(topic) : []).filter(t => raw.toLowerCase().indexOf(t) >= 0).length;
+
+    const ev = [];
+    /* FC 流利与连贯 */
+    let fc = 6;
+    if (n < 12) { fc -= 0.5; ev.push("FC：只有 " + n + " 个词，信息量不足以展现连贯。"); }
+    if (n >= 40) fc += 0.5;
+    if (n >= 75) fc += 0.5;
+    if (linkers.length >= 2) fc += 0.5;
+    if (linkers.length >= 4) fc += 0.5;
+    if (linkers.length) ev.push("FC：用到 " + linkers.slice(0, 3).join(" / ") + " 等衔接手段。");
+    else if (n >= 15) { fc -= 0.5; ev.push("FC：句与句基本是并列，缺少衔接词。"); }
+    if (d.fillerRatio > 0.08) { fc -= 0.5; ev.push("FC：填充词占 " + Math.round(d.fillerRatio * 100) + "%，影响流畅度。"); }
+
+    /* LR 词汇资源 */
+    let lr = 6;
+    if (variety >= 0.65) lr += 0.5;
+    if (variety < 0.45) { lr -= 0.5; ev.push("LR：实词重复率偏高，同一批词反复出现。"); }
+    if (adv.length >= 1) { lr += 0.5; ev.push("LR：出现 " + adv.slice(0, 3).join(" / ") + " 这类更有质感的表达。"); }
+    if (adv.length >= 3) lr += 0.5;
+    if (hedges.length) { lr += 0.5; ev.push("LR：会用 " + hedges.slice(0, 2).join(" / ") + " 做程度上的模糊，听感更自然。"); }
+    if (topicHits >= 3) lr += 0.5;
+
+    /* GRA 语法多样性与准确性 */
+    let gra = 6;
+    if (complex) { gra += 0.5; ev.push("GRA：出现了从句结构。"); }
+    else if (n >= 25) { gra -= 0.5; ev.push("GRA：通篇简单句，句式变化不足。"); }
+    if (tenses >= 2) gra += 0.5;
+    if (tenses >= 3) gra += 0.5;
+    if (avgLen >= 14 && complex) gra += 0.5;
+
+    return {
+      words: n, fc: clampBand(fc), lr: clampBand(lr), gra: clampBand(gra), pr: null,
+      linkers: linkers.length, complex: complex, variety: Math.round(variety * 100) / 100,
+      evidence: ev,
+      overall: clampBand((clampBand(fc) + clampBand(lr) + clampBand(gra)) / 3)
+    };
+  }
+
+  /* 教练点评：与考官台词严格分离。真实考官不会说这些。 */
+  function coachNote(answer, topic, part, d) {
+    const b = bandEstimate(answer, topic);
+    if (!b) return "";
+    const head = "这段大致在 " +
+      (b.overall - 0.5).toFixed(1) + "–" + (b.overall + 0.5).toFixed(1) + " 分区间。" +
+      " FC " + b.fc.toFixed(1) + "，LR " + b.lr.toFixed(1) + "，GRA " + b.gra.toFixed(1) +
+      "；PR 无法从文字判断，请听自己的录音打分。";
+    const tips = [];
+    if (b.linkers < 2) tips.push("补 2–3 个衔接词（that said / which is why / on the whole），把短句串成一段话。");
+    if (b.lr < 6.5) tips.push("把 a lot of、very、important 这类高频基础词换掉一个，换成具体一点的表达。");
+    if (!b.complex) tips.push("加一处从句或让步结构（although… / which means…），并让时态在现在和过去之间切换一次。");
+    if (d.hasReason && d.hasExample && b.overall >= 7) tips.push("已经有理由也有例子，下一步是把观点往前推一层：追问它为什么会这样、会带来什么影响。");
+    if (part === 2 && d.words < 120) tips.push("Part 2 的目标是 2 分钟，先固定成「一句总起 + 三个细节 + 一句感受」。");
+    const ev = b.evidence.length ? " 依据：" + b.evidence.join(" ") : "";
+    const tip = tips.length ? " 建议：" + tips.slice(0, 2).join(" ") : "";
+    return head + ev + tip;
   }
 
   /* =========================== 考官引擎 =========================== */
   /**
    * 生成本轮的考官回应。
    * ctx = { topic, part, asked:[已问过的问题], lastQ, answer, reaskDone }
-   * 返回 { question, feedback, flag }
+   * 返回 { question, feedback, coach, flag, band }
+   *
+   * feedback = 考官说的话。只做流程推进，**不含任何评价**：
+   *   · 回答过短 → 要求展开（Why is that? / Could you explain that a bit more?）
+   *   · 答非所问 → 礼貌拉回原问题（OK. Let's go back to the question about …）
+   *   · 内容充分 → 只给倾听信号（Mm-hmm. / Right. / I see.），或直接问下一题
+   * coach = 教练点评（含四维估计与依据），是学习辅助，真实考官不会说。
    */
   function react(ctx) {
     const { topic, part, asked = [], lastQ = "", answer = "", reaskDone = false } = ctx;
@@ -190,47 +429,49 @@ window.IELTS_ENGINE = (function () {
     const d = diagnose(answer, topic, lastQ);
     let feedback = "", flag = "ok", question = "";
 
-    /* --- 1. 先给一句自然反馈 --- */
+    /* --- 1. 考官台词：只推进流程，不评价 --- */
     if (d.words === 0) {
       feedback = "";
-    } else if (d.fillerRatio > 0.12) {
-      feedback = "Keep going — try replacing the um's and you-know's with a short pause.";
-      flag = "fillers";
-    } else if (d.hasReason && d.hasExample) {
-      feedback = "That's a well-developed answer — you gave both a reason and an example.";
-    } else if (d.hasReason) {
-      feedback = "Good — you explained why. A concrete example would make it even stronger.";
-    } else if (d.words >= 12) {
-      feedback = "Nice. Let me push you a little further.";
-    }
-
-    /* --- 2. 决定下一个问题 --- */
-    if (d.offTopic) {
+    } else if (d.offTopic && !reaskDone && lastQ) {
       flag = "offtopic";
-      if (!reaskDone && lastQ) {
-        /* 第一次跑题：明确指出并把原问题再问一次 */
-        feedback = (feedback ? feedback + " " : "") + OFFTOPIC_LEAD[Math.floor(Math.random() * OFFTOPIC_LEAD.length)];
-        question = "Let me ask that again — " + lastQ;
-      } else {
-        /* 已经提醒过：不再纠缠，换一道新题 */
-        feedback = (feedback ? feedback + " " : "") + "Let's move on to something else.";
-        question = freshQuestion(topic, part, asked, lastQ);
-      }
+      feedback = pick(SCRIPT.part1.backTo).en.replace(/\{topic\}/g, nounOf(topic));
+    } else if (d.offTopic) {
+      flag = "offtopic";
+      feedback = pick(SCRIPT.part1.moveOn).en;
     } else if (d.tooShort && part !== 2) {
       flag = "short";
-      const lead = SHORT_LEAD[Math.floor(Math.random() * SHORT_LEAD.length)];
-      const quoted = answer ? ' You said "' + trimTo(answer, 8) + '…" —' : "";
-      question = lead + quoted + " what else can you tell me about " + nounOf(topic) + "?";
-    } else if (part === 3) {
-      const bank = (topic.part3 || []).map(p => p[0]);
-      const left = bank.filter(q => asked.indexOf(q) < 0 && q !== lastQ);
-      if (left.length) question = left[Math.floor(Math.random() * left.length)];
-      else { question = abstractQuestion(topic, asked); flag = "escalated"; }
-    } else {
-      question = dynamicFollowUp({ topic: topic, asked: asked, lastQ: anchor, answer: answer });
+      /* 真实考官不会先复述你的话再让你展开，他直接问一个更具体的问题 */
+      question = part === 3 ? pick(SCRIPT.part3.deepen).en : pick(SCRIPT.part1.short).en;
+    } else if (d.fillerRatio > 0.12) {
+      flag = "fillers";
+      feedback = pick(SCRIPT.backchannel);
+    } else if (d.words >= 25) {
+      /* 内容足够时，考官通常只给倾听信号，然后直接问下一题 */
+      feedback = pick(SCRIPT.backchannel);
     }
 
-    return { question: question, feedback: feedback, flag: flag };
+    /* --- 2. 教练点评（学习辅助，与考官台词分开展示） --- */
+    const coach = coachNote(answer, topic, part, d);
+
+    /* --- 3. 决定下一个问题 --- */
+    if (flag === "offtopic" && !reaskDone && lastQ) {
+      /* 第一次跑题：明确拉回，并把原问题再问一次（这就是考官的下一问） */
+      question = lastQ;
+    } else if (flag === "offtopic") {
+      question = freshQuestion(topic, part, asked, lastQ);
+    } else if (!question) {
+      /* 过短时 question 已在上面定好（就是那个更具体的追问），不要覆盖 */
+      if (part === 3) {
+        const bank = (topic.part3 || []).map(p => p[0]);
+        const left = bank.filter(q => asked.indexOf(q) < 0 && q !== lastQ);
+        if (left.length) question = pick(left);
+        else { question = abstractQuestion(topic, asked); flag = "escalated"; }
+      } else {
+        question = dynamicFollowUp({ topic: topic, asked: asked, lastQ: anchor, answer: answer });
+      }
+    }
+
+    return { question: question, feedback: feedback, coach: coach, flag: flag, band: bandEstimate(answer, topic) };
   }
 
   function freshQuestion(topic, part, asked, lastQ) {
@@ -278,26 +519,32 @@ window.IELTS_ENGINE = (function () {
     "very important": "particularly important", "very good": "particularly good",
     "very": "particularly", "really": "genuinely", "people": "individuals",
     "important": "significant", "big": "substantial", "nice": "pleasant",
-    "i think": "I'd say", "a bit": "slightly", "kind of": "somewhat"
+    "i think": "I'd say", "a bit": "slightly", "kind of": "somewhat",
+    "interesting": "intriguing", "difficult": "challenging",
+    "tiring": "exhausting", "boring": "dull"
   };
   const MAP8 = {
     "a lot of": "an abundance of", "lots of": "an abundance of", "a lot": "substantially",
     "very important": "crucially important", "very good": "exceptionally strong",
     "very": "exceptionally", "really": "undeniably", "people": "individuals",
     "important": "crucial", "big": "considerable", "nice": "delightful",
-    "i think": "my own view is that", "a bit": "marginally", "kind of": "to some extent"
+    "i think": "my own view is that", "a bit": "marginally", "kind of": "to some extent",
+    "interesting": "compelling", "difficult": "demanding",
+    "tiring": "draining", "boring": "monotonous"
   };
   const CONNECT1 = ["Actually,", "To be honest,", "In my case,", "Well,", "Generally speaking,"];
   const CONNECT2 = ["Broadly speaking,", "From my point of view,", "What's more,", "That said,", "Looking at it more widely,"];
   const TAIL1 = [
     ", which I find quite interesting.",
     ", and that's something I've noticed more and more.",
-    ", which is partly why it matters to me."
+    ", which is partly why it matters to me.",
+    ", and that seems to be the general pattern."
   ];
   const TAIL2 = [
     ", which is a pattern I would argue is far from unusual.",
     ", and I suspect that's true for a great many people my age.",
-    ", something that says a good deal about how attitudes have shifted."
+    ", something that says a good deal about how attitudes have shifted.",
+    ", and that, to my mind, is the crux of the whole issue."
   ];
 
   function splitSentences(t) {
@@ -394,11 +641,11 @@ window.IELTS_ENGINE = (function () {
     lex7.changes.forEach(c => notes.push({ tier: 7, kind: c.kind, from: c.from, to: c.to, note: "换成更自然的表达" }));
     const b7s = splitSentences(lex7.text);
     if (b7s.length) {
-      const conn = CONNECT1[0];
+      const conn = seedPick(CONNECT1, base, 0);
       b7s[0] = conn + " " + afterComma(b7s[0]);
       notes.push({ tier: 7, kind: "连接词", from: "（句首无标记）", to: conn, note: "开头加话语标记，听起来更自然" });
       if (b7s.length >= 2) {
-        const tail = TAIL1[0];
+        const tail = seedPick(TAIL1, base, 3);
         b7s[b7s.length - 1] = b7s[b7s.length - 1].replace(/[.?!]\s*$/, "") + tail;
         notes.push({ tier: 7, kind: "结构", from: "（无从句）", to: tail.replace(/^,\s*/, ""), note: "补一个非限定性从句，增加语法多样性" });
       }
@@ -410,14 +657,14 @@ window.IELTS_ENGINE = (function () {
     lex8.changes.forEach(c => notes.push({ tier: 8, kind: c.kind, from: c.from, to: c.to, note: "改用更精准的搭配" }));
     const b8s = splitSentences(lex8.text);
     if (b8s.length) {
-      const conn = CONNECT2[0];
+      const conn = seedPick(CONNECT2, base, 0);
       b8s[0] = conn + " " + afterComma(b8s[0]);
       notes.push({ tier: 8, kind: "连接词", from: "（句首无标记）", to: conn, note: "换成更高级的衔接手段" });
       if (b8s.length >= 2 && /^I\b/.test(b8s[1])) {
         b8s[1] = "Although there are exceptions to this, " + afterComma(b8s[1]);
         notes.push({ tier: 8, kind: "结构", from: "（无让步）", to: "Although there are exceptions to this", note: "加让步状语从句，体现句式复杂度" });
       }
-      const tail = TAIL2[1];
+      const tail = seedPick(TAIL2, base, 5);
       b8s[b8s.length - 1] = b8s[b8s.length - 1].replace(/[.?!]\s*$/, "") + tail;
       notes.push({ tier: 8, kind: "结构", from: "（无延伸）", to: tail.replace(/^,\s*/, ""), note: "收尾加一层抽象延伸，体现思辨深度" });
     }
@@ -546,6 +793,8 @@ window.IELTS_ENGINE = (function () {
     react: react, diagnose: diagnose, upgrade: upgrade,
     diffHTML: diffHTML, diffWords: diffWords,
     buildReport: buildReport, countFillers: countFillers,
-    nounOf: nounOf, topicTerms: topicTerms, overlapScore: overlapScore
+    nounOf: nounOf, topicTerms: topicTerms, overlapScore: overlapScore,
+    SCRIPT: SCRIPT, line: line, pick: pick, seedPick: seedPick,
+    bandEstimate: bandEstimate, coachNote: coachNote
   };
 })();

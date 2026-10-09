@@ -185,6 +185,28 @@
   .tier .ttext{font-size:var(--fs-lead);line-height:1.75}
   .df-add{background:#dcfce7;color:#14532d;text-decoration:none;border-radius:var(--r-xs);padding:0 2px}
   .df-del{background:#fee2e2;color:#7f1d1d;border-radius:var(--r-xs);padding:0 2px}
+  /* 教练点评：与考官台词严格分开——真实考官从不评价回答，只会推进流程 */
+  .msg.coach{background:var(--purple-light);color:var(--purple);font-size:var(--fs-note);line-height:1.75;align-self:stretch;max-width:100%;border-radius:var(--r-sm)}
+  .msg .tag{display:inline-block;font-size:var(--fs-note);font-weight:500;margin-right:var(--sp-2);opacity:.85}
+  /* 分档示范回答 */
+  .bm-q{font-size:var(--fs-body);font-weight:500;margin-bottom:var(--sp-3)}
+  .bm-tier{border:1px solid var(--line);border-radius:var(--r-md);padding:var(--sp-3) var(--sp-4);background:var(--card);margin-bottom:var(--sp-3)}
+  .bm-tier.b6{border-left:4px solid #94a3b8}
+  .bm-tier.b7{border-left:4px solid var(--teal)}
+  .bm-tier.b8{border-left:4px solid var(--purple)}
+  .bm-head{display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap;margin-bottom:var(--sp-2)}
+  .bm-en{font-size:var(--fs-lead);line-height:1.75}
+  .bm-zh{font-size:var(--fs-note);color:var(--muted);line-height:1.7;margin-top:var(--sp-2)}
+  .bm-why{font-size:var(--fs-note);color:var(--ink);background:var(--bg);border-radius:var(--r-sm);padding:var(--sp-2) var(--sp-3);margin-top:var(--sp-2);line-height:1.7}
+  .chunk-group{margin-bottom:var(--sp-4)}
+  .cg-head{font-size:var(--fs-lead);font-weight:500}
+  .cg-hint{font-size:var(--fs-note);color:var(--muted);margin-bottom:var(--sp-2)}
+  .chunk-item{display:flex;gap:var(--sp-3);align-items:baseline;padding:var(--sp-1) 0;border-bottom:1px solid var(--line);font-size:var(--fs-body)}
+  .chunk-item .ci-en{flex:1;min-width:0}
+  .chunk-item .ci-zh{flex:1;color:var(--muted);font-size:var(--fs-note)}
+  .script-line{display:flex;gap:var(--sp-3);align-items:baseline;padding:var(--sp-2) 0;border-bottom:1px solid var(--line)}
+  .script-line .sl-en{flex:1;min-width:0;font-size:var(--fs-body)}
+  .script-line .sl-zh{flex:1;color:var(--muted);font-size:var(--fs-note)}
   .change-li{font-size:var(--fs-body);padding:var(--sp-2) 0;border-bottom:1px solid var(--line);display:flex;gap:var(--sp-2);flex-wrap:wrap;align-items:baseline}
   .change-li:last-child{border-bottom:none}
   .chg-from{color:var(--danger);text-decoration:line-through}
@@ -621,6 +643,27 @@
             </div>
           </div>
 
+          <!-- 分档示范：按当前题的题型 / 话题类别自动匹配，给出 6 / 7 / 8 三档
+               示范与分档依据，对照官方四项标准看差异从哪里产生。 -->
+          <div class="card coll" id="bandColl" data-collapsed="true">
+            <div class="coll-head">
+              <button class="coll-toggle" aria-expanded="false" aria-controls="bandPanel">
+                <svg class="ic" aria-hidden="true"><use href="#i-chart"/></svg>
+                <span class="coll-title">分档示范回答</span>
+                <span class="badge gray" id="bandCount">—</span>
+              </button>
+              <svg class="ic coll-chev" aria-hidden="true"><use href="#i-chevron"/></svg>
+            </div>
+            <div class="coll-body" id="bandPanel">
+              <div class="coll-inner">
+                <p class="sub" style="margin-bottom:var(--sp-3)">同一类题的三档示范与分档依据。6 分档不是差，它是有条理、无硬伤但手段有限的真实基线；看 7 与 8 的差别时，重点留意它们怎么主动限定自己说的话。</p>
+                <div id="bandBody"></div>
+                <h3 class="mt16">高频功能表达块 <span class="badge gray">按功能归类</span></h3>
+                <div id="chunkBody"></div>
+              </div>
+            </div>
+          </div>
+
           <!-- 备考素材：词汇与表达合并为一张默认收起的卡。
                这两块是"查阅资料"而非"当前动作"，常驻会把核心动作挤出屏幕。 -->
           <div class="card coll" id="materialColl" data-collapsed="true">
@@ -737,6 +780,11 @@
     <div id="mockResult" class="hidden">
       <h1><svg class="ic" aria-hidden="true"><use href="#i-doc"/></svg>本次模考结果</h1>
       <div class="card">
+        <h2>考官结束语</h2>
+        <p class="sub" style="margin-bottom:var(--sp-2)">真实考试到这里就结束了。考官不会现场给任何评价，也不会提示成绩。</p>
+        <div id="mockEndScript"></div>
+      </div>
+      <div class="card">
         <h2>练习报告</h2>
         <div id="mockReportBody"></div>
       </div>
@@ -769,6 +817,23 @@
       <h2>浏览与检索 <span class="badge blue" id="libStat">—</span></h2>
       <input id="libSearch" placeholder="搜索关键词（中/英都能搜，如 work / 团队 / teamwork / 音乐）…">
       <div id="topicList" style="margin-top:var(--sp-3)"></div>
+    </div>
+
+    <div class="card coll" id="scriptColl" data-collapsed="true">
+      <div class="coll-head">
+        <button class="coll-toggle" aria-expanded="false" aria-controls="scriptPanel">
+          <svg class="ic" aria-hidden="true"><use href="#i-mic"/></svg>
+          <span class="coll-title">考官话术全表</span>
+          <span class="badge gray">中英对照</span>
+        </button>
+        <svg class="ic coll-chev" aria-hidden="true"><use href="#i-chevron"/></svg>
+      </div>
+      <div class="coll-body" id="scriptPanel">
+        <div class="coll-inner">
+          <p class="sub" style="margin-bottom:var(--sp-3)">考官的话高度脚本化，用词固定、只负责推进流程：不评价回答、不给分、不纠正语法、不解释生词、不聊私人话题。Mm-hmm 与点头只是「我在听」，不是夸奖；Part 2 到 2 分钟被打断是固定流程，不是负面信号。</p>
+          <div id="scriptBody"></div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -827,6 +892,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="topics.js"></script>
+<script src="bands.js"></script>
 <script src="engine.js"></script>
 <script src="llm.js"></script>
 <script src="app.js"></script>
