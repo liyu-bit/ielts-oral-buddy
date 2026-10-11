@@ -84,6 +84,7 @@ ielts-oral-buddy/
 ├── engine.js    # 考官话术脚本、离线规则考官，以及诊断、分档估计、三档改写、diff 与报告引擎
 ├── llm.js       # 大模型接入：OpenAI 兼容 /chat/completions 与 SSE 流式
 ├── app.js       # 页面逻辑：抽题、套题、录音、复盘、生词本、导出
+├── mic-check.html  # 独立自检页：麦克风权限、录音格式与语音识别兼容性诊断
 └── 口语模块*.md  # 设计文档（迭代记录与改进建议）
 ```
 

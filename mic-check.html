@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<title>麦克风与语音识别自检 · IELTS Oral Buddy</title>
+<style>
+  :root{
+    --bg:#f5f7f8; --card:#ffffff; --ink:#1c2b2a; --muted:#55635f;
+    --teal:#0f766e; --teal-dark:#0c5f58; --teal-light:#e0f2ef;
+    --line:#e4e9e8; --line-2:#d6dddc;
+    --ok:#116232; --ok-light:#e5f5ea;
+    --amber:#8a4008; --amber-light:#fdf1dc;
+    --danger:#b91c1c; --danger-light:#fdeaea;
+    --blue:#1d4ed8; --blue-light:#e8eefc;
+    --purple:#6d28d9; --purple-light:#f1e9fe;
+    --r-sm:8px; --r-md:12px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;padding:16px 14px 60px;background:var(--bg);color:var(--ink);
+    font:15px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    -webkit-text-size-adjust:100%;
+  }
+  h1{font-size:21px;margin:0 0 4px}
+  h2{font-size:16px;margin:0 0 10px}
+  .sub{color:var(--muted);font-size:13px;margin:0 0 16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-md);padding:14px;margin-bottom:12px}
+  .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  button{
+    font:inherit;font-size:14px;padding:10px 16px;min-height:42px;border-radius:var(--r-sm);
+    border:1px solid var(--line-2);background:#fff;color:var(--ink);cursor:pointer;
+  }
+  button.primary{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:600}
+  button.primary:active{background:var(--teal-dark)}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  select{font:inherit;font-size:14px;padding:8px 10px;min-height:42px;border-radius:var(--r-sm);border:1px solid var(--line-2);background:#fff;color:var(--ink)}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  td{padding:8px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  td.k{width:44%;color:var(--muted)}
+  .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+  .p-ok{background:var(--ok-light);color:var(--ok)}
+  .p-bad{background:var(--danger-light);color:var(--danger)}
+  .p-warn{background:var(--amber-light);color:var(--amber)}
+  .p-info{background:var(--blue-light);color:var(--blue)}
+  .p-idle{background:#eef1f1;color:var(--muted)}
+  #log{
+    background:#0f1c1b;color:#c8e6e2;border-radius:var(--r-sm);padding:10px 12px;
+    font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    max-height:280px;overflow:auto;white-space:pre-wrap;word-break:break-word;
+  }
+  #log .t{color:#7fa8a3}
+  #log .e{color:#ff9b9b}
+  #log .g{color:#8ee6a8}
+  #log .w{color:#ffd08a}
+  .note{font-size:12.5px;color:var(--muted);margin:10px 0 0}
+  .verdict{font-size:14px;padding:10px 12px;border-radius:var(--r-sm);margin-top:10px;display:none}
+  .v-ok{background:var(--ok-light);color:var(--ok);border:1px solid #bfe3cb}
+  .v-bad{background:var(--danger-light);color:var(--danger);border:1px solid #f3c6c6}
+  .v-warn{background:var(--amber-light);color:var(--amber);border:1px solid #f0d9ae}
+  code{background:#eef1f1;padding:1px 5px;border-radius:4px;font-size:12.5px}
+  audio{width:100%;margin-top:8px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  @media (max-width:420px){ .grid2{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+
+<h1>麦克风与语音识别自检</h1>
+<p class="sub">用于定位「手机端录音 / 识别失败」的具体环节。请<strong>用手机浏览器直接打开本页</strong>，依次点三个按钮，把最后生成的报告复制出来。</p>
+
+<div class="card">
+  <h2>一、运行环境</h2>
+  <table id="envTable"><tr><td class="k">检测中…</td><td></td></tr></table>
+  <p class="note" id="secureNote"></p>
+</div>
+
+<div class="card">
+  <h2>二、能力检测</h2>
+  <table id="capTable"><tr><td class="k">检测中…</td><td></td></tr></table>
+</div>
+
+<div class="card">
+  <h2>三、实测</h2>
+  <div class="row" style="margin-bottom:8px">
+    <span style="font-size:13px;color:var(--muted)">识别语言</span>
+    <select id="langSel">
+      <option value="en-GB">en-GB（英音，应用默认）</option>
+      <option value="en-US">en-US（美音）</option>
+      <option value="en-AU">en-AU（澳音）</option>
+      <option value="zh-CN">zh-CN（中文）</option>
+    </select>
+  </div>
+  <div class="grid2">
+    <button class="primary" id="btnPerm">① 申请麦克风权限</button>
+    <button id="btnRec">② 测录音（3 秒）</button>
+    <button id="btnSR">③ 测语音识别（6 秒）</button>
+    <button id="btnCopy">复制报告</button>
+  </div>
+  <div class="verdict" id="verdict"></div>
+  <audio id="playback" controls style="display:none"></audio>
+</div>
+
+<div class="card">
+  <h2>四、事件日志</h2>
+  <div id="log"></div>
+  <p class="note">重点关注：<code>onerror</code> 的 <code>error</code> 字段、以及是否出现 <code>audiostart</code> / <code>soundstart</code>。</p>
+</div>
+
+<div class="card">
+  <h2>五、结果怎么读</h2>
+  <table>
+    <tr><td class="k"><span class="pill p-ok">能力检测通过但实测失败</span></td><td>问题在权限、网络或系统层（例如中文网络访问不到识别服务、被弹窗拒绝、被系统麦克风总开关拦截）。</td></tr>
+    <tr><td class="k"><span class="pill p-bad">能力检测就不通过</span></td><td>浏览器本身不支持。常见于微信 / QQ / 微博等 App 内置浏览器，以及 iOS 上的 Firefox、部分国产浏览器。</td></tr>
+    <tr><td class="k"><span class="pill p-warn">录音能成、识别为 0</span></td><td>只影响「识别词数 / 语速 / 填充词」统计，录音回放仍可用。应用里这三项显示「—」正是这个原因。</td></tr>
+    <tr><td class="k"><span class="pill p-info">识别报 <code>network</code></span></td><td>浏览器的语音识别把音频发往厂商服务器，国内网络常被拦截 —— 需换网络环境或改用打字。</td></tr>
+  </table>
+</div>
+
+<script>
+"use strict";
+var $ = function (s) { return document.querySelector(s); };
+var LOG = $("#log"), T0 = Date.now();
+
+function log(msg, cls) {
+  var t = ((Date.now() - T0) / 1000).toFixed(2) + "s";
+  var line = document.createElement("div");
+  if (cls) line.className = cls;
+  var ts = document.createElement("span"); ts.className = "t"; ts.textContent = "[" + t + "] ";
+  line.appendChild(ts);
+  line.appendChild(document.createTextNode(msg));
+  LOG.appendChild(line);
+  LOG.scrollTop = LOG.scrollHeight;
+}
+function pill(state, text) {
+  var map = { ok: "p-ok", bad: "p-bad", warn: "p-warn", info: "p-info", idle: "p-idle" };
+  return '<span class="pill ' + (map[state] || "p-idle") + '">' + text + "</span>";
+}
+function rowsTo(table, arr) {
+  table.innerHTML = arr.map(function (r) {
+    return '<tr><td class="k">' + r[0] + "</td><td>" + r[1] + "</td></tr>";
+  }).join("");
+}
+
+var REPORT = { env: {}, caps: {}, tests: {} };
+
+/* ------------ 一、环境 ------------ */
+var UA = navigator.userAgent;
+function guessBrowser() {
+  if (/MicroMessenger/i.test(UA)) return "微信内置浏览器";
+  if (/QQ\/|QQBrowser/i.test(UA)) return "QQ / QQ 浏览器";
+  if (/Weibo/i.test(UA)) return "微博内置浏览器";
+  if (/EdgA?\//i.test(UA)) return "Edge";
+  if (/CriOS/i.test(UA)) return "Chrome (iOS)";
+  if (/FxiOS/i.test(UA)) return "Firefox (iOS)";
+  if (/Chrome\//i.test(UA)) return "Chrome";
+  if (/Firefox\//i.test(UA)) return "Firefox";
+  if (/Safari\//i.test(UA) && /Version\//i.test(UA)) return "Safari";
+  return "未知";
+}
+function guessOS() {
+  if (/iPhone|iPod/i.test(UA)) return "iOS";
+  if (/iPad/i.test(UA)) return "iPadOS";
+  if (/Android/i.test(UA)) return "Android";
+  if (/Windows/i.test(UA)) return "Windows";
+  if (/Mac OS X/i.test(UA)) return "macOS";
+  return "未知";
+}
+var isSecure = (typeof window.isSecureContext !== "undefined") ? window.isSecureContext : (location.protocol === "https:");
+REPORT.env = {
+  os: guessOS(), browser: guessBrowser(),
+  protocol: location.protocol, secure: isSecure,
+  embedded: /MicroMessenger|QQ\/|Weibo/i.test(UA)
+};
+rowsTo($("#envTable"), [
+  ["操作系统", REPORT.env.os],
+  ["浏览器", REPORT.env.browser + (/MicroMessenger|QQ\/|Weibo/i.test(UA) ? " " + pill("warn", "内置 WebView") : "")],
+  ["页面协议", location.protocol + " " + (isSecure ? pill("ok", "安全上下文") : pill("bad", "非安全上下文"))],
+  ["用户代理", '<span style="font-size:12px;word-break:break-all">' + UA + "</span>"]
+]);
+if (!isSecure) {
+  $("#secureNote").innerHTML = "当前不是安全上下文（需 https 或 localhost）。<strong>麦克风与语音识别在 http / file:// 下会被浏览器直接禁用</strong>，这也是最常见的失败原因之一。";
+}
+
+/* ------------ 二、能力检测 ------------ */
+var hasGUM = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+var hasMR = typeof window.MediaRecorder !== "undefined";
+var SRClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+var hasSR = !!SRClass;
+var SRPrefix = window.SpeechRecognition ? "标准" : (window.webkitSpeechRecognition ? "webkit 前缀" : "无");
+
+var MIMES = [
+  "audio/webm;codecs=opus", "audio/webm", "audio/mp4;codecs=mp4a.40.2", "audio/mp4",
+  "audio/ogg;codecs=opus", "audio/ogg", "audio/wav", "audio/mpeg", "audio/aac"
+];
+var mimeSupport = MIMES.map(function (m) {
+  var ok = false;
+  try { ok = hasMR && MediaRecorder.isTypeSupported(m); } catch (e) { ok = false; }
+  return m + (ok ? " ✅" : " ✗");
+});
+
+REPORT.caps = { getUserMedia: hasGUM, MediaRecorder: hasMR, SpeechRecognition: hasSR, srPrefix: SRPrefix };
+rowsTo($("#capTable"), [
+  ["navigator.mediaDevices", hasGUM ? pill("ok", "支持") : pill("bad", "不支持")],
+  ["MediaRecorder（录音）", hasMR ? pill("ok", "支持") : pill("bad", "不支持")],
+  ["SpeechRecognition（识别）", hasSR ? pill("ok", "支持 · " + SRPrefix) : pill("bad", "不支持")],
+  ["可录制的音频格式", '<span style="font-size:12.5px">' + mimeSupport.join("<br>") + "</span>"],
+  ["音频是否上传到服务器", pill("info", "否 · 本项目不传音频")]
+]);
+if (!hasSR) log("SpeechRecognition 不可用 —— 应用里「识别词数 / 语速 / 填充词」将恒为「—」，但录音与回放仍可正常。", "e");
+if (!hasGUM) log("getUserMedia 不可用 —— 无法录音。", "e");
+
+/* ------------ 三、实测 ------------ */
+var stream = null, tracksInfo = null;
+
+function setVerdict(cls, text) {
+  var v = $("#verdict");
+  v.className = "verdict v-" + cls;
+  v.style.display = "block";
+  v.innerHTML = text;
+}
+
+$("#btnPerm").addEventListener("click", function () {
+  log("① 申请麦克风权限 …");
+  if (!hasGUM) { log("navigator.mediaDevices.getUserMedia 不存在，无法申请。", "e"); setVerdict("bad", "此浏览器不支持麦克风采集。请改用 Chrome / Edge / iOS Safari 最新版，并避免在微信等 App 内置浏览器中打开。"); return; }
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(function (s) {
+    stream = s;
+    var tr = s.getAudioTracks()[0];
+    var st = tr.getSettings ? tr.getSettings() : {};
+    var cap = tr.getCapabilities ? tr.getCapabilities() : {};
+    tracksInfo = {
+      label: tr.label, enabled: tr.enabled, muted: tr.muted, readyState: tr.readyState,
+      sampleRate: st.sampleRate, channelCount: st.channelCount,
+      echoCancellation: st.echoCancellation, noiseSuppression: st.noiseSuppression,
+      autoGainControl: st.autoGainControl, deviceId: st.deviceId,
+      capSampleRates: cap.sampleRate, capChannels: cap.channelCount
+    };
+    REPORT.tests.permission = tracksInfo;
+    log("授权成功。轨道：" + tr.label, "g");
+    log("采样率 = " + st.sampleRate + " Hz，声道 = " + st.channelCount + "，回声消除 = " + st.echoCancellation + "，降噪 = " + st.noiseSuppression, "g");
+    rowsTo($("#capTable"), [
+      ["navigator.mediaDevices", hasGUM ? pill("ok", "支持") : pill("bad", "不支持")],
+      ["MediaRecorder（录音）", hasMR ? pill("ok", "支持") : pill("bad", "不支持")],
+      ["SpeechRecognition（识别）", hasSR ? pill("ok", "支持 · " + SRPrefix) : pill("bad", "不支持")],
+      ["麦克风设备名", tr.label || "(未返回，通常表示权限未真正授予)"],
+      ["实际采样率", st.sampleRate + " Hz（硬件能力 " + (cap.sampleRate ? cap.sampleRate.join(" / ") : "未提供") + "）"],
+      ["声道数", String(st.channelCount)],
+      ["回声消除 / 降噪 / 自动增益", st.echoCancellation + " / " + st.noiseSuppression + " / " + st.autoGainControl],
+      ["可录制的音频格式", '<span style="font-size:12.5px">' + mimeSupport.join("<br>") + "</span>"]
+    ]);
+    setVerdict("ok", "麦克风已授权，采样率 " + st.sampleRate + " Hz。请继续点 ② 测录音、③ 测识别。");
+  }).catch(function (err) {
+    REPORT.tests.permissionError = err.name + ": " + err.message;
+    log("申请失败：" + err.name + " — " + err.message, "e");
+    var hint = {
+      NotAllowedError: "权限被拒绝。iOS 需到「设置 → Safari → 麦克风」放行；Android 需在浏览器站点设置里放行；微信内需改用系统浏览器。",
+      NotFoundError: "没有找到麦克风设备。",
+      NotReadableError: "设备被其他程序占用（如正在通话、其他 App 录音中）。",
+      SecurityError: "安全上下文不满足（必须 https）。",
+      AbortError: "系统层中止，常见于 iOS 屏幕共享 / 来电打断。"
+    }[err.name] || "未知错误，请把本页日志发给开发者。";
+    setVerdict("bad", "<strong>" + err.name + "</strong><br>" + hint);
+  });
+});
+
+$("#btnRec").addEventListener("click", function () {
+  log("② 测录音（3 秒）…");
+  if (!hasMR) { log("MediaRecorder 不存在，无法录音。", "e"); setVerdict("bad", "此浏览器不支持 MediaRecorder，无法录音。iOS 需 14.3 及以上版本。"); return; }
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(function (s) {
+    if (!stream) stream = s;
+    var mr, chunks = [], chosen = "";
+    var prefer = ["audio/webm;codecs=opus", "audio/mp4", "audio/ogg;codecs=opus", "audio/webm"];
+    for (var i = 0; i < prefer.length; i++) {
+      try { if (MediaRecorder.isTypeSupported(prefer[i])) { chosen = prefer[i]; break; } } catch (e) {}
+    }
+    try { mr = chosen ? new MediaRecorder(s, { mimeType: chosen }) : new MediaRecorder(s); }
+    catch (e) { log("构造 MediaRecorder 失败：" + e.message + "，改用默认参数。", "w"); mr = new MediaRecorder(s); }
+    log("请求格式 = " + (chosen || "(默认)") + "，实际 mimeType = " + mr.mimeType, "g");
+    mr.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
+    mr.onerror = function (e) { log("MediaRecorder 错误：" + (e.error && e.error.name), "e"); };
+    mr.onstop = function () {
+      var type = mr.mimeType || "audio/webm";
+      var blob = chunks.length ? new Blob(chunks, { type: type }) : null;
+      REPORT.tests.record = { requested: chosen || "default", mimeType: type, chunks: chunks.length, size: blob ? blob.size : 0 };
+      if (!blob || !blob.size) { log("没有采集到任何数据（0 字节）。", "e"); setVerdict("bad", "录音为空。可能麦克风被系统静音、被其他 App 占用，或权限只是显示已授予但实际不可读。"); return; }
+      log("录音完成：格式 " + type + "，大小 " + blob.size + " 字节。", "g");
+      var a = $("#playback");
+      a.style.display = "block";
+      a.src = URL.createObjectURL(blob);
+      log("已生成回放。请点下面的播放器，能听到自己的声音就说明录音链路正常。", "g");
+      setVerdict("ok", "录音成功（" + (blob.size / 1024).toFixed(0) + " KB，" + type + "）。若播放器听不到声音，但此处显示有字节，则是播放或音量问题，不是采集问题。");
+    };
+    mr.start();
+    setTimeout(function () { if (mr.state !== "inactive") mr.stop(); }, 3000);
+    setTimeout(function () {
+      if (stream) { stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; }
+    }, 3400);
+  }).catch(function (err) {
+    log("录音前申请权限失败：" + err.name, "e");
+    setVerdict("bad", "授权失败：" + err.name + "。请先点 ① 查看具体原因。");
+  });
+});
+
+$("#btnSR").addEventListener("click", function () {
+  log("③ 测语音识别（6 秒）…");
+  if (!hasSR) { log("SpeechRecognition 不存在。", "e"); setVerdict("bad", "此浏览器不支持语音识别。请改用 Android Chrome 或最新版 iOS Safari；微信 / QQ 内置浏览器通常不支持。"); return; }
+  var lang = $("#langSel").value;
+  var r = new SRClass();
+  r.lang = lang; r.interimResults = true; r.continuous = false; r.maxAlternatives = 1;
+  var got = false, errCode = null, audioStarted = false, soundStarted = false;
+
+  r.onstart = function () { log("onstart · 已启动（lang=" + lang + "）"); };
+  r.onaudiostart = function () { audioStarted = true; log("onaudiostart · 开始采集音频", "g"); };
+  r.onsoundstart = function () { soundStarted = true; log("onsoundstart · 检测到人声", "g"); };
+  r.onspeechend = function () { log("onspeechend · 说话结束"); };
+  r.onresult = function (e) {
+    got = true;
+    var txt = "";
+    for (var i = e.resultIndex; i < e.results.length; i++) txt += e.results[i][0].transcript;
+    log("onresult · \"" + txt + "\"（final=" + e.results[e.results.length - 1].isFinal + "）", "g");
+  };
+  r.onerror = function (e) {
+    errCode = e.error;
+    log("onerror · error = " + e.error + (e.message ? " / " + e.message : ""), "e");
+  };
+  r.onend = function () {
+    log("onend · 会话结束");
+    REPORT.tests.speechRecognition = { lang: lang, result: got, error: errCode, audioStart: audioStarted, soundStart: soundStarted };
+    var why = {
+      network: "识别服务不可达。浏览器的语音识别要把音频发往厂商服务器，国内网络常被拦截 —— 这是国内最典型的原因，换网络或改用打字。",
+      "not-allowed": "权限被拒。请检查系统麦克风总开关与站点权限。",
+      "service-not-allowed": "浏览器策略禁止使用识别服务（内置 WebView 常见）。",
+      "audio-capture": "采集不到音频设备。",
+      "language-not-supported": "该语言包不可用。可把识别语言改成 en-US 或 zh-CN 再试。",
+      "no-speech": "没有检测到人声。靠近麦克风、环境安静些再试。",
+      aborted: "会话被中止（通常是页面切换或被其它操作打断）。"
+    }[errCode];
+    if (got) {
+      setVerdict("ok", "识别成功，结果：" + lang + "。若应用里仍显示「—」，请确认应用的识别语言设置与这里一致。");
+    } else if (errCode) {
+      setVerdict("bad", "<strong>识别失败：error = " + errCode + "</strong><br>" + (why || "未知错误码。"));
+    } else if (!audioStarted) {
+      setVerdict("warn", "会话结束但从未采集到音频（无 onaudiostart）。说明麦克风未被识别服务接管，通常是浏览器或系统层拦截。");
+    } else if (!soundStarted) {
+      setVerdict("warn", "采集到了音频，但未检测到人声（无 onsoundstart）。请重试并对着麦克风正常说话。");
+    } else {
+      setVerdict("warn", "采集到人声但没返回结果。可能是网络或服务端问题，请重试一次。");
+    }
+  };
+
+  try { r.start(); } catch (e) { log("start() 抛错：" + e.message, "e"); setVerdict("bad", "启动识别失败：" + e.message); return; }
+  setTimeout(function () { try { r.stop(); } catch (e) {} }, 6000);
+});
+
+$("#btnCopy").addEventListener("click", function () {
+  var lines = [];
+  lines.push("=== IELTS Oral Buddy · 麦克风自检报告 ===");
+  lines.push("时间：" + new Date().toString());
+  lines.push("");
+  lines.push("[环境]");
+  for (var k in REPORT.env) lines.push("  " + k + " = " + REPORT.env[k]);
+  lines.push("");
+  lines.push("[能力]");
+  for (var k2 in REPORT.caps) lines.push("  " + k2 + " = " + REPORT.caps[k2]);
+  lines.push("");
+  lines.push("[实测]");
+  lines.push("  " + JSON.stringify(REPORT.tests, null, 2).replace(/\n/g, "\n  "));
+  lines.push("");
+  lines.push("[日志]");
+  lines.push(LOG.innerText);
+  var text = lines.join("\n");
+  var done = function () { log("报告已复制到剪贴板。", "g"); };
+  var fail = function () {
+    var ta = document.createElement("textarea");
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); done(); } catch (e) { log("复制失败，请手动选中日志区域。", "w"); }
+    document.body.removeChild(ta);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(fail);
+  } else { fail(); }
+});
+
+log("自检页已加载。建议顺序：① → ② → ③ → 复制报告。");
+</script>
+</body>
+</html>
